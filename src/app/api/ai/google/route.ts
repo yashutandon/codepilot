@@ -11,6 +11,11 @@ export async function POST(){
     const aiResponse= await generateText({
         model: google('gemini-2.5-flash'),
         prompt: 'Write a chole bhature recipe for 4 people.',
+        experimental_telemetry:{
+          isEnabled:true,
+          recordInputs:true,
+          recordOutputs:true,
+        },
       });
       return Response.json({aiResponse})
 }
