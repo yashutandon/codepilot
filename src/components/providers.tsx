@@ -5,8 +5,8 @@ import { ClerkProvider, SignInButton, SignUpButton, useAuth, UserButton } from "
 import { Authenticated, AuthLoading, ConvexReactClient, Unauthenticated } from "convex/react";
 import { ConvexProviderWithClerk } from "convex/react-clerk";
 import { ThemeProvider } from "./theme-provider";
-import { UnauthView } from "@/features/auth/components/unauth-view";
-import AuthLoader from "@/features/auth/components/auth-loader";
+import { UnauthView } from "@/features/components/unauth-view";
+import AuthLoader from "@/features/components/auth-loader";
 
 
 const convex = new ConvexReactClient(
