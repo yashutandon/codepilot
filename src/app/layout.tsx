@@ -17,7 +17,7 @@ const PlexMono = IBM_Plex_Mono({
 
 
 export const metadata: Metadata = {
-  title: "CodePilot AI – AI-Powered Code Editor for Developers",
+  title: "CodePilot – AI-Powered Code Editor",
   description:
     "CodePilot AI is an intelligent code editor inspired by Cursor IDE. It offers context-aware AI chat, inline code explanations, refactoring, bug fixing, and diff previews to boost developer productivity.",
   keywords: [
@@ -30,6 +30,9 @@ export const metadata: Metadata = {
     "Next.js AI project",
     "Developer productivity tools",
   ],
+  icons:{
+    icon:"/logo.svg"
+  },
   authors: [{ name: "Yashu Tandon" }],
   creator: "Yashu Tandon",
   metadataBase: new URL("https://codepilot-ai.vercel.app"), // change if needed

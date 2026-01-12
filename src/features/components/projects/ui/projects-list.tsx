@@ -63,7 +63,7 @@ const ProjectItem = ({ data }: {
 }) => {
 
     return (
-        <Link href={`/projects/${data._id}`}
+        <Link href={`/project/${data._id}`}
             className="text-sm text-foreground/60 font-medium hover:text-foreground py-1 flex items-center justify-between w-full group">
             <div className="flex items-center gap-2">
                 {getProjectIcon(data)}
@@ -84,12 +84,12 @@ const ProjectItem = ({ data }: {
 export const ProjectList = ({
     onViewAll
 }: ProjectListProps) => {
-    const projects = useProjectsPartial(6);
-    if (projects === undefined) {
+    const project = useProjectsPartial(6);
+    if (project === undefined) {
         return <Spinner className="size-text-ring" />
     }
 
-    const [mostRecent, ...rest] = projects;
+    const [mostRecent, ...rest] = project;
     return (
 
         <div className="flex flex-col gap-4">

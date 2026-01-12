@@ -17,22 +17,22 @@ export const Providers = ({ children }: { children: React.ReactNode }) => {
     return (
         <ClerkProvider>
             <ConvexProviderWithClerk client={convex} useAuth={useAuth}>
-                <ThemeProvider
+            <ThemeProvider
                     attribute="class"
                     defaultTheme="dark"
                     enableSystem
                     disableTransitionOnChange
                 >
-                    <Authenticated>
-                       <UserButton/>
+                    {/* <Authenticated>
+                       <UserButton/> */}
                        {children}
-                    </Authenticated>
+                    {/* </Authenticated>
                     <Unauthenticated>
                         <UnauthView/>
                     </Unauthenticated>
                     <AuthLoading>
                        <AuthLoader/>
-                    </AuthLoading>
+                    </AuthLoading> */}
                    
                 </ThemeProvider>
             </ConvexProviderWithClerk>
