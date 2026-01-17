@@ -23,16 +23,16 @@ export const Providers = ({ children }: { children: React.ReactNode }) => {
                     enableSystem
                     disableTransitionOnChange
                 >
-                    {/* <Authenticated>
-                       <UserButton/> */}
+                    <Authenticated>
+                       <UserButton/>
                        {children}
-                    {/* </Authenticated>
+                    </Authenticated>
                     <Unauthenticated>
                         <UnauthView/>
                     </Unauthenticated>
                     <AuthLoading>
                        <AuthLoader/>
-                    </AuthLoading> */}
+                    </AuthLoading>
                    
                 </ThemeProvider>
             </ConvexProviderWithClerk>
