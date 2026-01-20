@@ -5,7 +5,7 @@ import { useEditor } from "../hooks/use-editor";
 import { FileBreadcrumbs } from "./file-breadcrumbs";
 import { TopNavigation } from "./top-navigation"
 import { CodeEditor } from "./code-editor";
-import { useRef } from "react";
+import { useEffect, useRef } from "react";
 
 const DEBOUNCE_MS=1500;
 
@@ -17,6 +17,15 @@ export const EditorView = ({projectId}:{projectId:Id<"projects">})=>{
     const timeout = useRef<NodeJS.Timeout | null>(null);
     const isActiveFileBinary=activeFile && activeFile.storageId;
     const isActiveFileText=activeFile && !activeFile.storageId;
+
+    useEffect(() => {
+      return () => {
+        if(timeout.current){
+            clearTimeout(timeout.current);
+        }
+      }
+    }, [activeTabId])
+    
 
 
     return (

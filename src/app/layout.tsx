@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { IBM_Plex_Mono, Inter } from "next/font/google";
 import "./globals.css";
 import { Providers } from "@/components/providers";
+import { Toaster } from "sonner";
 
 
 const inter = Inter({
@@ -74,6 +75,7 @@ export default function RootLayout({
         className={`${inter.variable} ${PlexMono.variable} antialiased`}
       >
         <Providers>
+          <Toaster/>
           {children}
         </Providers>
       </body>

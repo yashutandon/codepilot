@@ -1,0 +1,51 @@
+import ky from "ky";
+import z from "zod";
+import { toast } from "sonner";
+
+
+const suggestionRequestSchema=z.object({
+    fileName:z.string(),
+    code:z.string(),
+    currentLine:z.string(),
+    previousLines:z.string(),
+    textBeforeCursor:z.string(),
+    textAfterCursor:z.string(),
+    nextLines:z.string(),
+    lineNumber:z.number()
+})
+
+const suggestResponseSchema=z.object({
+    suggestion:z.string()
+})
+
+type SuggestionRequest = z.infer<typeof suggestionRequestSchema>;
+type SuggestionResponse=z.infer<typeof suggestResponseSchema>;
+
+
+export const fetcher=async(
+    payload:SuggestionRequest,
+    signal:AbortSignal,
+):Promise<string | null> =>{
+    
+    try {
+        const validatePayload=suggestionRequestSchema.parse(payload);
+
+        const response=await ky
+        .post("/api/suggestion",{
+            json:validatePayload,
+            signal,
+            timeout:10_000,
+            retry:0,
+        }).json<SuggestionResponse>();
+        const validatedResponse=suggestResponseSchema.parse(response);
+
+        return validatedResponse.suggestion;
+    } catch (error) {
+        if(error instanceof Error && error.name === "AbortError"){
+            return null;
+        }
+        toast.error("Failed to fetch AI completion")
+        return null;
+    }
+
+}
