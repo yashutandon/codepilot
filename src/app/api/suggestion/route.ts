@@ -98,12 +98,10 @@ export async function POST(request:Request){
             prompt
         })
 
-        return NextResponse.json({suggestion:output.suggestion})
-    }catch(e){
+        return NextResponse.json({suggestion:output?.suggestion ?? ""})    }catch(e){
         console.error("Suggestion error:",e);
         return NextResponse.json({
-            error:"Failed to generate suggestion0"
+            error:"Failed to generate suggestion"
         },{status:500}
-    );
-    }
+    );    }
 }

@@ -86,16 +86,14 @@ export async function POST(request:Request){
             );
             const validResults=scrapedResults.filter(Boolean);
             if(validResults.length>0){
-                documentationContext=`<docmentation>\n ${validResults.join("\n\n")} \n</documentation>`
-            }
+                documentationContext=`<documentation>\n${validResults.join("\n\n")}\n</documentation>`            }
         }
 
         const prompt=QUICK_EDIT_PROMPT
-        .replace("{selectCode}",selectedCode)
+        .replace("{selectedCode}",selectedCode)
         .replace("{fullCode}",fullCode || "")
         .replace("{instruction}",instruction)
         .replace("{documentation}",documentationContext)
-
         const {output}= await generateText({
             model:google("gemini-2.0-flash"),
             output:Output.object({schema:quickEditSchema}),
