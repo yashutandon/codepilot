@@ -1,6 +1,8 @@
 import {generateText,Output} from "ai";
 import { NextResponse } from "next/server";
 import {google} from "@ai-sdk/google";
+import { openai } from "@ai-sdk/openai";
+
 
 import {z} from "zod";
 import { auth } from "@clerk/nextjs/server";
@@ -93,7 +95,7 @@ export async function POST(request:Request){
         .replace("{lineNumber}",lineNumber.toString());
 
         const {output}=await generateText({
-            model:google("gemini-2.5-flash"),
+            model: openai("gpt-4.1-mini"),
             output:Output.object({schema:suggestionSchema}),
             prompt
         })

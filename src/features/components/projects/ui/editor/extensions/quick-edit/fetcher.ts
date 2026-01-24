@@ -2,45 +2,44 @@ import ky from "ky";
 import z from "zod";
 import { toast } from "sonner";
 
+const editRequestSchema = z.object({
+  selectedCode: z.string(),
+  fullCode: z.string(),
+  instruction: z.string(),
+});
 
-const editRequestSchema=z.object({
-    selectedCode:z.string(),
-    fullCode:z.string(),
-    instruction:z.string()
-})
-
-const editResponseSchema=z.object({
-    editCode:z.string()
-})
+const editResponseSchema = z.object({
+  editedCode: z.string(),
+});
 
 type EditRequest = z.infer<typeof editRequestSchema>;
-type EditResponse=z.infer<typeof editResponseSchema>;
+type EditResponse = z.infer<typeof editResponseSchema>;
 
+export const fetcher = async (
+  payload: EditRequest,
+  signal: AbortSignal
+): Promise<string | null> => {
+  try {
+    const validatePayload = editRequestSchema.parse(payload);
 
-export const fetcher=async(
-    payload:EditRequest,
-    signal:AbortSignal,
-):Promise<string | null> =>{
-    
-    try {
-        const validatePayload=editRequestSchema.parse(payload);
+    const response = await ky
+      .post("/api/quick-edit", {
+        json: validatePayload,
+        signal,
+        timeout: 30_000,
+        retry: 0,
+      })
+      .json<EditResponse>();
 
-        const response=await ky
-        .post("/api/quick-edit",{
-            json:validatePayload,
-            signal,
-            timeout:30_000,
-            retry:0,
-        }).json<EditResponse>();
-        const validatedResponse=editResponseSchema.parse(response);
+    const validatedResponse = editResponseSchema.parse(response);
 
-        return validatedResponse.editCode;
-    } catch (error) {
-        if(error instanceof Error && error.name === "AbortError"){
-            return null;
-        }
-        toast.error("Failed to fetch AI edit")
-        return null;
+    return validatedResponse.editedCode;
+  } catch (error) {
+    if (error instanceof Error && error.name === "AbortError") {
+      return null;
     }
-
-}
+    console.error("Quick Edit API error:", error);
+    toast.error("Failed to fetch AI edit");
+    return null;
+  }
+};
