@@ -9,6 +9,7 @@ import { miniMap } from "../extensions/mini-map";
 import { customSetup } from "../extensions/custom-setup";
 import { suggestion } from "../extensions/suggestion/suggestion";
 import { quickEdit } from "../extensions/quick-edit/quick-edit";
+import { selectionTooltip } from "../extensions/selection-tooltip";
 
 interface Props{
   fileName:string;
@@ -34,6 +35,7 @@ export const CodeEditor = ({fileName,initialValue,onChange}:Props) => {
                 langaugeExtension,
                 suggestion(fileName),
                 quickEdit(fileName),
+                selectionTooltip(),
                 keymap.of([indentWithTab]),
                 miniMap(),
                 indentationMarkers(),
