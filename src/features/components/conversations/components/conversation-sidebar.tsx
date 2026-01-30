@@ -45,6 +45,7 @@ export const ConversationSidebar = ({ projectId }: ConversationSidebarProps) => 
 
     const handleSubmit = async (message:PromptInputMessage) => {
         if(isProccessing && !message.text){
+            await handleCancel()
             setInput("");
             return;
         }
@@ -68,6 +69,16 @@ export const ConversationSidebar = ({ projectId }: ConversationSidebarProps) => 
         setInput("")
     }
 
+    const handleCancel= async ()=>{
+        try{
+            await ky.post("/api/messages/cancel",{
+             json:{projectId}
+            })
+        }catch{
+            toast.error("Unable to cancel request")
+        }
+    }
+
     return (
         <div className="flex flex-col h-full bg-sidebar">
             <div className="h-8.75 flex items-center justify-between border-b">
@@ -82,9 +93,10 @@ export const ConversationSidebar = ({ projectId }: ConversationSidebarProps) => 
                     </Button>
                     <Button
                         size="icon-xs"
-                        variant="highlight">
+                        variant="highlight" 
+                        onClick={handleCreateConversation}>
                         <PlusIcon className="size-3.5" 
-                        onClick={handleCreateConversation}/>
+                        />
                     </Button>
                 </div>
             </div>
@@ -97,10 +109,12 @@ export const ConversationSidebar = ({ projectId }: ConversationSidebarProps) => 
                         <MessageContent>
                             {message.status === "processing" ? 
                                 (
-                                    <div className="flex items-center gap-2 text-muted-foreground">
+                                    <div className="flex items-center gap-2 text-muted-foreground" onClick={handleCancel}>
                                         <LoaderIcon className="size-4 animate-spin"/>
                                         <span>Thinking...</span>
                                     </div>
+                                ):message.status==="cancelled" ?(
+                                    <span className="text-muted-foreground italic">Request cancelled</span>
                                 ):(
                                     <MessageResponse>
                                         {message.content}

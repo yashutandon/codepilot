@@ -4,7 +4,6 @@ import { NextRequest, NextResponse } from "next/server"
 import {z} from "zod"
 import { api } from "../../../../convex/_generated/api";
 import { Id } from "../../../../convex/_generated/dataModel";
-import { Trykker } from "next/font/google";
 import { inngest } from "@/inngest/client";
 
 const requestSchema=z.object ({
@@ -42,6 +41,33 @@ export async function POST(request:Request){
         );
     }
     const projectId=conversation.projectId;
+
+    const ProcessingMessages=await convex.query(
+        api.system.getProcessingMessages,
+        {
+            internalKey,
+            projectId
+        }
+    )
+
+    if(ProcessingMessages.length>0){
+        await Promise.all(
+            ProcessingMessages.map(async(msg)=>{
+               await inngest.send({
+                name:"message/cancel",
+                data:{
+                    messageId:msg._id
+                }
+               });
+               await convex.mutation(api.system.updateMessageStatus,{
+                internalKey,
+                messageId:msg._id,
+                status:"cancelled"
+               })
+            })
+    
+        )
+    }
 
     await convex.mutation(api.system.createMessage,{
         internalKey,
