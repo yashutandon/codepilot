@@ -10,6 +10,7 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { useConversation, useConversations, useCreateConversation, useMessages } from "../hooks/use-conversation";
 import { DEFAULT_CONVERSATION_TITLE } from "../../../../../convex/constants";
+import { PastConversationsDialog } from "./past-conversation-dialog";
 
 
 interface ConversationSidebarProps {
@@ -17,140 +18,154 @@ interface ConversationSidebarProps {
 }
 
 export const ConversationSidebar = ({ projectId }: ConversationSidebarProps) => {
-    const [selectedConversationId,setSelectedConversationId]=useState<Id<"conversations">| null>(null);
-    const [input,setInput]=useState("");
+    const [selectedConversationId, setSelectedConversationId] = useState<Id<"conversations"> | null>(null);
+    const [input, setInput] = useState("");
+    const [pastConversationsOpen, setPastConversationOpen] = useState(false);
 
-    const conversations=useConversations(projectId);
-    const createConversation=useCreateConversation();
-    const activeConversationId=selectedConversationId ?? conversations?.[0]?._id ?? null;
-    const activeCoversation=useConversation(activeConversationId);
-    const conversationMessages=useMessages(activeConversationId);
+    const conversations = useConversations(projectId);
+    const createConversation = useCreateConversation();
+    const activeConversationId = selectedConversationId ?? conversations?.[0]?._id ?? null;
+    const activeCoversation = useConversation(activeConversationId);
+    const conversationMessages = useMessages(activeConversationId);
 
-    const isProccessing=conversationMessages?.some((msg)=>msg.status === "processing")
+    const isProccessing = conversationMessages?.some((msg) => msg.status === "processing")
 
 
-    const handleCreateConversation= async () => {
-        try{
-            const newconversationId=await createConversation({
+    const handleCreateConversation = async () => {
+        try {
+            const newconversationId = await createConversation({
                 projectId,
-                title:DEFAULT_CONVERSATION_TITLE,
+                title: DEFAULT_CONVERSATION_TITLE,
             })
             setSelectedConversationId(newconversationId);
             return newconversationId;
-        }catch{
+        } catch {
             toast.error("Unable to create new conversation")
             return null;
         }
     }
 
-    const handleSubmit = async (message:PromptInputMessage) => {
-        if(isProccessing && !message.text){
+    const handleSubmit = async (message: PromptInputMessage) => {
+        if (isProccessing && !message.text) {
             await handleCancel()
             setInput("");
             return;
         }
-        let conversationId=activeConversationId;
-        if(!conversationId){
-            conversationId=await handleCreateConversation();
-            if(!conversationId){
-                return ;
+        let conversationId = activeConversationId;
+        if (!conversationId) {
+            conversationId = await handleCreateConversation();
+            if (!conversationId) {
+                return;
             }
         }
-        try{
-            await ky.post("/api/messages",{
-                json:{
+        try {
+            await ky.post("/api/messages", {
+                json: {
                     conversationId,
-                    message:message.text
+                    message: message.text
                 }
             })
-        }catch{
+        } catch {
             toast.error("Message failed  to send")
         }
         setInput("")
     }
 
-    const handleCancel= async ()=>{
-        try{
-            await ky.post("/api/messages/cancel",{
-             json:{projectId}
+    const handleCancel = async () => {
+        try {
+            await ky.post("/api/messages/cancel", {
+                json: { projectId }
             })
-        }catch{
+        } catch {
             toast.error("Unable to cancel request")
         }
     }
 
     return (
-        <div className="flex flex-col h-full bg-sidebar">
-            <div className="h-8.75 flex items-center justify-between border-b">
-                <div className="text-sm truncate pl-3">
-                    {activeCoversation?.title ?? DEFAULT_CONVERSATION_TITLE}
+        <>
+
+            <PastConversationsDialog
+                projectId={projectId}
+                open={pastConversationsOpen}
+                onOpenChange={setPastConversationOpen}
+                onSelect={setSelectedConversationId}
+            />
+            <div className="flex flex-col h-full bg-sidebar">
+                <div className="h-8.75 flex items-center justify-between border-b">
+                    <div className="text-sm truncate pl-3">
+                        {activeCoversation?.title ?? DEFAULT_CONVERSATION_TITLE}
+                    </div>
+                    <div className="flex items-center px-1 gap-1">
+                        <Button
+                            size="icon-xs"
+                            variant="highlight"
+                            onClick={() => setPastConversationOpen(true)}>
+                            <HistoryIcon className="size-3.5" />
+                        </Button>
+                        <Button
+                            size="icon-xs"
+                            variant="highlight"
+                            onClick={handleCreateConversation}>
+                            <PlusIcon className="size-3.5"
+                            />
+                        </Button>
+                    </div>
                 </div>
-                <div className="flex items-center px-1 gap-1">
-                    <Button
-                      size="icon-xs"
-                      variant="highlight">
-                        <HistoryIcon className="size-3.5" />
-                    </Button>
-                    <Button
-                        size="icon-xs"
-                        variant="highlight" 
-                        onClick={handleCreateConversation}>
-                        <PlusIcon className="size-3.5" 
-                        />
-                    </Button>
+                <Conversation className="flex-1">
+                    <ConversationContent>
+                        {conversationMessages?.map((message, messageIndex) => (
+                            <Message
+                                key={message._id}
+                                from={message.role}>
+                                <MessageContent>
+                                    {message.status === "processing" ?
+                                        (
+                                            <div className="flex items-center gap-2 text-muted-foreground" onClick={handleCancel}>
+                                                <LoaderIcon className="size-4 animate-spin" />
+                                                <span>Thinking...</span>
+                                            </div>
+                                        ) : message.status === "cancelled" ? (
+                                            <span className="text-muted-foreground italic">Request cancelled</span>
+                                        ) : (
+                                            <MessageResponse>
+                                                {message.content}
+                                            </MessageResponse>
+                                        )
+                                    }
+                                </MessageContent>
+                                {message.role === "assistant" && message.status === "completed" && messageIndex === (conversationMessages?.length ?? 0) - 1 && (
+                                    <MessageActions>
+                                        <MessageAction onClick={() => navigator.clipboard.writeText(message.content)} label="Copy">
+                                            <CopyIcon className="size-3" />
+                                        </MessageAction>
+                                    </MessageActions>
+                                )}
+                            </Message>
+                        ))}
+                    </ConversationContent>
+                    <ConversationScrollButton />
+                </Conversation>
+                <div className="p-3">
+                    <PromptInput
+                        onSubmit={handleSubmit}
+                        className="mt-2 rounded-full!">
+                        <PromptInputBody>
+                            <PromptInputTextarea
+                                placeholder="Ask Codepilot anthing..."
+                                onChange={(e) => { setInput(e.target.value) }}
+                                value={input}
+                                disabled={isProccessing} />
+                        </PromptInputBody>
+                        <PromptInputFooter>
+                            <PromptInputTools />
+                            <PromptInputSubmit disabled={isProccessing ? false : !input} status={isProccessing ? "streaming" : undefined} />
+                        </PromptInputFooter>
+                    </PromptInput>
                 </div>
             </div>
-            <Conversation className="flex-1">
-                <ConversationContent>
-                   {conversationMessages?.map((message,messageIndex)=>(
-                    <Message
-                    key={message._id}
-                    from={message.role}>
-                        <MessageContent>
-                            {message.status === "processing" ? 
-                                (
-                                    <div className="flex items-center gap-2 text-muted-foreground" onClick={handleCancel}>
-                                        <LoaderIcon className="size-4 animate-spin"/>
-                                        <span>Thinking...</span>
-                                    </div>
-                                ):message.status==="cancelled" ?(
-                                    <span className="text-muted-foreground italic">Request cancelled</span>
-                                ):(
-                                    <MessageResponse>
-                                        {message.content}
-                                    </MessageResponse>
-                                )
-                            }
-                        </MessageContent>
-                        {message.role === "assistant" && message.status === "completed" && messageIndex === (conversationMessages?.length ?? 0)-1 && (
-                            <MessageActions>
-                                <MessageAction onClick={()=>navigator.clipboard.writeText(message.content)} label="Copy">
-                                    <CopyIcon className="size-3"/>
-                                </MessageAction>
-                            </MessageActions>
-                        )}
-                    </Message>
-                   ))}
-                </ConversationContent>
-                <ConversationScrollButton/>
-            </Conversation>
-            <div className="p-3">
-                <PromptInput
-                 onSubmit={handleSubmit}
-                 className="mt-2 rounded-full!">
-                    <PromptInputBody>
-                        <PromptInputTextarea
-                         placeholder="Ask Codepilot anthing..."
-                         onChange={(e)=>{setInput(e.target.value)}}
-                         value={input}
-                         disabled={isProccessing}/>
-                    </PromptInputBody>
-                    <PromptInputFooter>
-                        <PromptInputTools/>
-                        <PromptInputSubmit disabled={isProccessing ? false :!input} status={isProccessing ? "streaming" : undefined}/>
-                    </PromptInputFooter>
-                </PromptInput>
-            </div>
-        </div>
+
+
+
+        </>
     )
 }
