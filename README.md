@@ -60,7 +60,7 @@ CodePilot is a modern web-based IDE featuring:
 ```bash
 git clone https://github.com/yashutandon/codepilot.git
 cd codepilot
-
+```
 ### 2️⃣ Install Dependencies
 ```bash
 npm install
@@ -68,7 +68,7 @@ npm install
 pnpm install
 # or
 yarn install
-
+```
 ### 3️⃣ Environment Variables
 Create a .env.local file:
 ```bash
@@ -81,6 +81,7 @@ GEMINI_API_KEY=
 
 CONVEX_DEPLOYMENT=
 NEXT_PUBLIC_CONVEX_URL=
-
+```
 ###4️⃣ Run the Development Server
+```bash
 npm run dev
