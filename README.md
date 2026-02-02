@@ -60,3 +60,27 @@ CodePilot is a modern web-based IDE featuring:
 ```bash
 git clone https://github.com/yashutandon/codepilot.git
 cd codepilot
+
+### 2️⃣ Install Dependencies
+```bash
+npm install
+# or
+pnpm install
+# or
+yarn install
+
+### 3️⃣ Environment Variables
+Create a .env.local file:
+```bash
+NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=
+CLERK_SECRET_KEY=
+
+OPENAI_API_KEY=
+# or
+GEMINI_API_KEY=
+
+CONVEX_DEPLOYMENT=
+NEXT_PUBLIC_CONVEX_URL=
+
+###4️⃣ Run the Development Server
+npm run dev
