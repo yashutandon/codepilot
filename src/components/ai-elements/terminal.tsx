@@ -1,3 +1,4 @@
+/* eslint-disable react/no-children-prop */
 "use client";
 
 import { Button } from "@/components/ui/button";
@@ -125,7 +126,7 @@ export const TerminalStatus = ({
       className={cn("flex items-center gap-2 text-xs text-zinc-400", className)}
       {...props}
     >
-      {children ?? <Shimmer className="w-16" />}
+      {children ? children : <Shimmer className="w-16" children={""} />}
     </div>
   );
 };
@@ -249,7 +250,7 @@ export const TerminalContent = ({
       {...props}
     >
       {children ?? (
-        <pre className="whitespace-pre-wrap break-words">
+        <pre className="whitespace-pre-wrap wrap-break-word">
           <Ansi>{output}</Ansi>
           {isStreaming && (
             <span className="ml-0.5 inline-block h-4 w-2 animate-pulse bg-zinc-100" />

@@ -1,3 +1,4 @@
+/* eslint-disable react/display-name */
 "use client";
 
 import { Button } from "@/components/ui/button";
@@ -205,8 +206,8 @@ export function highlightCode(
 
       const tokenized: TokenizedCode = {
         tokens: result.tokens,
-        fg: result.fg,
-        bg: result.bg,
+        fg: result.fg ?? "inherit",
+        bg: result.bg ?? "transparent",
       };
 
       // Cache the result
@@ -383,6 +384,7 @@ export const CodeBlockContent = ({
 
   useEffect(() => {
     // Reset to raw tokens when code changes (shows current code, not stale tokens)
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setTokenized(highlightCode(code, language) ?? rawTokens);
 
     // Subscribe to async highlighting result

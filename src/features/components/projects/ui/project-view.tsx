@@ -8,12 +8,10 @@ import { Poppins } from "next/font/google"
 import Image from "next/image"
 import { FaGithub } from 'react-icons/fa'
 import { ProjectList } from "./projects-list"
-import {
-    adjectives, animals, colors, uniqueNamesGenerator
-} from "unique-names-generator";
-import { useCreateProject } from "../hooks/use-projects"
 import { useEffect, useState } from "react"
 import { ProjectsCommandDialog } from "./projects-command-dialog"
+import { ImportGithubDialog } from "./import-github-dialog"
+import { NewProjectDialog } from "./new-project-dialog"
 
 const font = Poppins({
     subsets: ["latin"],
@@ -21,25 +19,41 @@ const font = Poppins({
 })
 
 export const ProjectView = () => {
-    const createProject = useCreateProject();
+
     const [commandDialogOpen, setCommandDialogOpen] = useState(false);
+    const [importDialogOpen, setImportDialogOpen] = useState(false);
+    const [newProjectDialogOpen,setNewProjectDialogOpen]=useState(false);
+        
     useEffect(() => {
         const handleKeyDown = (e: KeyboardEvent) => {
           if ((e.ctrlKey || e.metaKey) && e.shiftKey && e.code === "KeyK") {
             e.preventDefault();
             setCommandDialogOpen(true);
           }
+          if ((e.ctrlKey || e.metaKey) && e.shiftKey && e.code === "KeyI") {
+            e.preventDefault();
+            setImportDialogOpen(true);
+          }
+          if((e.ctrlKey || e.metaKey) && e.shiftKey && e.code === "KeyJ"){
+            e.preventDefault();
+            setNewProjectDialogOpen(true);
+          }
         };
+
       
         document.addEventListener("keydown", handleKeyDown);
         return () => document.removeEventListener("keydown", handleKeyDown);
       }, []);
-      
+
+
     
     return (
         <>
             <ProjectsCommandDialog open={commandDialogOpen}
             onOpenChange={setCommandDialogOpen}/>
+            <ImportGithubDialog open={importDialogOpen}
+            onOpenChange={setImportDialogOpen}/>
+            <NewProjectDialog  open={newProjectDialogOpen} onOpenChange={setNewProjectDialogOpen}/>
             <div className="min-h-screen bg-sidebar flex flex-col items-center justify-center p-6 md:p-16">
                 <div className="w-full max-w-sm mx-auto flex flex-col gap-4 items-center">
                     <div className="flex justify-between gap-4 w-full items-center">
@@ -57,14 +71,7 @@ export const ProjectView = () => {
                             <Button
                                 variant="outline"
                                 onClick={() => {
-                                    const projectName = uniqueNamesGenerator({
-                                        dictionaries: [adjectives, animals, colors],
-                                        separator: "-",
-                                        length: 3,
-                                    })
-                                    createProject({
-                                        name: projectName
-                                    })
+                                    setNewProjectDialogOpen(true);
                                 }}
                                 className="h-full items-start justify-start p-4 bg-background border flex flex-col gap-6 rounded-none">
                                 <div className="flex items-center justify-between w-full">
@@ -79,7 +86,8 @@ export const ProjectView = () => {
                                     </span>
                                 </div>
                             </Button>
-                            <Button className="h-full items-start justify-start p-4 bg-background border flex flex-col gap-6 rounded-none">
+                            <Button className="h-full items-start justify-start p-4 bg-background border flex flex-col gap-6 rounded-none"
+                            onClick={() => setImportDialogOpen(true)}>
                                 <div className="flex items-center justify-between w-full">
                                     <FaGithub className="size-4 text-white" />
                                     <Kbd className="bg-accent border">

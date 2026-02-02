@@ -1,3 +1,5 @@
+/* eslint-disable react-hooks/immutability */
+/* eslint-disable react/display-name */
 "use client";
 
 import { cn } from "@/lib/utils";
@@ -132,6 +134,7 @@ interface PersonaWithModelProps {
   children: React.ReactNode;
 }
 
+// eslint-disable-next-line react/display-name
 const PersonaWithModel = memo(
   ({ rive, source, children }: PersonaWithModelProps) => {
     const theme = useTheme(source.dynamicColor);
