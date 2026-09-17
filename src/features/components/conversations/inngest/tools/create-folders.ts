@@ -13,7 +13,7 @@ interface CreateFolderToolOptions {
 
 const paramsSchema = z.object({
   name: z.string().min(1, "Folder name is required"),
-  parentId: z.string(),
+  parentId: z.string().nullable().optional(),
 });
 
 export const createCreateFolderTool = ({
@@ -22,13 +22,14 @@ export const createCreateFolderTool = ({
 }: CreateFolderToolOptions) => {
   return createTool({
     name: "createFolder",
-    description: "Create a new folder in the project",
+    description: "Create a new folder in the project. For root folders, pass parentId as null.",
     parameters: z.object({
       name: z.string().describe("The name of the folder to create"),
       parentId: z
         .string()
+        .nullable()
         .describe(
-          "The ID (not name!) of the parent folder from listFiles, or empty string for root level"
+          "The ID of the parent folder from listFiles, or null for root level"
         ),
     }),
     handler: async (params, { step: toolStep }) => {

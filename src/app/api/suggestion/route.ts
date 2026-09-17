@@ -1,7 +1,5 @@
-import {generateText,Output} from "ai";
 import { NextResponse } from "next/server";
-import {google} from "@ai-sdk/google";
-import { openai } from "@ai-sdk/openai";
+import { generateObjectWithFallback, getSuggestionModelCandidates } from "@/lib/ai-models";
 
 
 import {z} from "zod";
@@ -94,13 +92,14 @@ export async function POST(request:Request){
         .replace("{nextLines}",nextLines || "")
         .replace("{lineNumber}",lineNumber.toString());
 
-        const {output}=await generateText({
-            model: openai("gpt-4.1-mini"),
-            output:Output.object({schema:suggestionSchema}),
-            prompt
-        })
+        const { object } = await generateObjectWithFallback({
+            candidates: getSuggestionModelCandidates(),
+            schema: suggestionSchema,
+            prompt,
+        });
 
-        return NextResponse.json({suggestion:output?.suggestion ?? ""})    }catch(e){
+        return NextResponse.json({ suggestion: object?.suggestion ?? "" });
+    } catch(e) {
         console.error("Suggestion error:",e);
         return NextResponse.json({
             error:"Failed to generate suggestion"

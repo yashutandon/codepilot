@@ -40,12 +40,16 @@ export async function POST (request:Request){
     }
     const cancelledIds=await Promise.all(
         ProcessingMessages.map(async(msg)=>{
-           await inngest.send({
-            name:"message/cancel",
-            data:{
-                messageId:msg._id
-            }
-           });
+           try {
+             await inngest.send({
+              name:"message/cancel",
+              data:{
+                  messageId:msg._id
+              }
+             });
+           } catch (e) {
+             console.warn("Could not send Inngest cancel event:", e);
+           }
            await convex.mutation(api.system.updateMessageStatus,{
             internalKey,
             messageId:msg._id,
@@ -53,7 +57,6 @@ export async function POST (request:Request){
            })
            return msg._id;
         })
-
     )
 
     return NextResponse.json({

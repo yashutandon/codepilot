@@ -33,7 +33,29 @@ export const buildTreeFile=(files:FileDoc[]):FileSystemTree=>{
                 if(file.type==="folder"){
                     current[part]={directory:{}};
                 }else if(!file.storageId && file.content!== undefined){
-                    current[part]={file:{contents:file.content}};
+                    let contents = file.content;
+                    if(file.name === "package.json"){
+                        try {
+                            const pkg = JSON.parse(contents);
+                            let modified = false;
+                            if(!pkg.scripts){
+                                pkg.scripts = { dev: "vite", start: "vite", build: "vite build" };
+                                modified = true;
+                            } else if(!pkg.scripts.dev){
+                                if(pkg.scripts.start){
+                                    pkg.scripts.dev = pkg.scripts.start;
+                                    modified = true;
+                                } else if(pkg.scripts.serve){
+                                    pkg.scripts.dev = pkg.scripts.serve;
+                                    modified = true;
+                                }
+                            }
+                            if(modified){
+                                contents = JSON.stringify(pkg, null, 2);
+                            }
+                        } catch {}
+                    }
+                    current[part]={file:{contents}};
                 }
             }else{
                 if(!current[part]){

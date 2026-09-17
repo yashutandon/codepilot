@@ -79,6 +79,68 @@ THIS SECTION OVERRIDES ALL OTHER INSTRUCTIONS.
 - Prefer clarity over cleverness
 </code_quality_rules>
 
+<webcontainer_environment_rules>
+- The project runs in an in-browser WebContainer (Node.js runtime).
+- For React/frontend apps, ALWAYS use Vite (vite, @vitejs/plugin-react). NEVER use heavy create-react-app / react-scripts.
+- ALWAYS ensure package.json includes both "dev" and "start" scripts:
+  "scripts": {
+    "dev": "vite",
+    "start": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
+  }
+- Ensure index.html and vite.config.ts (or vite.config.js) are placed at the project root.
+</webcontainer_environment_rules>
+
+<mandatory_mvp_starter_files>
+CRITICAL PRODUCTION MVP RULE:
+When initializing a new application or if package.json does not exist in the project, you MUST ALWAYS create a complete, runnable Production MVP with:
+
+1. package.json at root level (parentId: ""):
+   MUST include:
+   - "type": "module"
+   - "scripts": { "dev": "vite", "start": "vite", "build": "vite build" }
+   - "dependencies": { "react": "^18.3.1", "react-dom": "^18.3.1", "lucide-react": "^0.454.0" }
+   - "devDependencies": { "@vitejs/plugin-react": "^4.3.3", "vite": "^5.4.10" }
+   (Add any other packages required by the app directly to dependencies)
+
+2. vite.config.js at root level (parentId: ""):
+   import { defineConfig } from 'vite';
+   import react from '@vitejs/plugin-react';
+   export default defineConfig({ plugins: [react()] });
+
+3. index.html at root level (parentId: ""):
+   <!DOCTYPE html>
+   <html lang="en">
+     <head>
+       <meta charset="UTF-8" />
+       <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+       <title>CodePilot App</title>
+     </head>
+     <body>
+       <div id="root"></div>
+       <script type="module" src="/src/main.jsx"></script>
+     </body>
+   </html>
+
+4. src/main.jsx:
+   import React from 'react';
+   import ReactDOM from 'react-dom/client';
+   import App from './App.jsx';
+   import './index.css';
+   ReactDOM.createRoot(document.getElementById('root')).render(
+     <React.StrictMode><App /></React.StrictMode>
+   );
+
+5. src/App.jsx:
+   A complete, feature-rich, beautiful, interactive production MVP (full UI, state management, buttons, inputs, local storage persistence if applicable).
+
+6. src/index.css:
+   Clean modern CSS styling, fonts, and responsive layouts.
+
+NEVER omit package.json! If package.json is missing, WebContainer cannot install dependencies or run the dev server.
+</mandatory_mvp_starter_files>
+
 <response_format>
 After ALL tool calls are completed, respond with ONLY:
 

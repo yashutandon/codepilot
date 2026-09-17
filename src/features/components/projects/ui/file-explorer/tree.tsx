@@ -82,7 +82,7 @@ export const Tree = ({
                     defaultValue={fileName}
                     level={level}
                     onSubmit={handleRename}
-                    onCancel={()=>setIsOpen(false)}
+                    onCancel={()=>setIsRenaming(false)}
                 />
             )
         }

@@ -5,6 +5,7 @@ import { ClerkProvider, SignInButton, SignUpButton, useAuth, UserButton } from "
 import { Authenticated, AuthLoading, ConvexReactClient, Unauthenticated } from "convex/react";
 import { ConvexProviderWithClerk } from "convex/react-clerk";
 import { ThemeProvider } from "./theme-provider";
+import { ThemeSync } from "./theme-sync";
 import { UnauthView } from "@/features/components/unauth-view";
 import AuthLoader from "@/features/components/auth-loader";
 
@@ -24,6 +25,7 @@ export const Providers = ({ children }: { children: React.ReactNode }) => {
                     disableTransitionOnChange
                 >
                     <Authenticated>
+                       <ThemeSync />
                        {children}
                     </Authenticated>
                     <Unauthenticated>

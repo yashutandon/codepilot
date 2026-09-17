@@ -105,6 +105,28 @@ export const updateMessageStatus = mutation({
     }
 })
 
+export const clearStuckProcessingMessages = mutation({
+    args: {
+        internalKey: v.string(),
+    },
+    handler: async (ctx, args) => {
+        validateInternalKey(args.internalKey);
+        const processingMessages = await ctx.db
+            .query("messages")
+            .filter((q) => q.eq(q.field("status"), "processing"))
+            .collect();
+
+        for (const msg of processingMessages) {
+            await ctx.db.patch(msg._id, {
+                status: "cancelled",
+                content: msg.content || "Request cancelled or timed out.",
+            });
+        }
+
+        return { cleared: processingMessages.length, ids: processingMessages.map((m) => m._id) };
+    },
+})
+
 export const getRecentMessages = query({
     args: {
         internalKey: v.string(),
@@ -543,3 +565,56 @@ export const createProjectWithConversation = mutation({
       return { projectId, conversationId };
     },
   });
+
+export const updateProjectName = mutation({
+  args: {
+    internalKey: v.string(),
+    projectId: v.id("projects"),
+    name: v.string(),
+  },
+  handler: async (ctx, args) => {
+    validateInternalKey(args.internalKey);
+    await ctx.db.patch(args.projectId, {
+      name: args.name,
+      updateAt: Date.now(),
+    });
+  },
+});
+
+export const getAllProjects = query({
+  args: {
+    internalKey: v.string(),
+  },
+  handler: async (ctx, args) => {
+    validateInternalKey(args.internalKey);
+    return await ctx.db.query("projects").order("desc").take(10);
+  },
+});
+
+export const getProjectConversations = query({
+  args: {
+    internalKey: v.string(),
+    projectId: v.id("projects"),
+  },
+  handler: async (ctx, args) => {
+    validateInternalKey(args.internalKey);
+    return await ctx.db
+      .query("conversations")
+      .withIndex("by_project", (q) => q.eq("projectId", args.projectId))
+      .collect();
+  },
+});
+
+export const getAllProjectMessages = query({
+  args: {
+    internalKey: v.string(),
+    projectId: v.id("projects"),
+  },
+  handler: async (ctx, args) => {
+    validateInternalKey(args.internalKey);
+    return await ctx.db
+      .query("messages")
+      .withIndex("by_project_status", (q) => q.eq("projectId", args.projectId))
+      .collect();
+  },
+});

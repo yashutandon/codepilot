@@ -53,12 +53,16 @@ export async function POST(request:Request){
     if(ProcessingMessages.length>0){
         await Promise.all(
             ProcessingMessages.map(async(msg)=>{
-               await inngest.send({
-                name:"message/cancel",
-                data:{
-                    messageId:msg._id
-                }
-               });
+               try {
+                 await inngest.send({
+                  name:"message/cancel",
+                  data:{
+                      messageId:msg._id
+                  }
+                 });
+               } catch (err) {
+                 console.warn("Could not send cancel event to Inngest:", err);
+               }
                await convex.mutation(api.system.updateMessageStatus,{
                 internalKey,
                 messageId:msg._id,
@@ -86,19 +90,31 @@ export async function POST(request:Request){
         status:"processing"
     })
 
-    const event=await inngest.send({
-        name:"message/sent",
-        data:{
-            messageId:assistantMessageId,
-            conversationId,
-            projectId,
-            message
-        }
-    })
+    let eventId = "local";
+    try {
+      const event = await inngest.send({
+        name: "message/sent",
+        data: {
+          messageId: assistantMessageId,
+          conversationId,
+          projectId,
+          message,
+        },
+      });
+      eventId = event.ids[0] || "local";
+    } catch (err) {
+      console.error("Failed to send Inngest event:", err);
+      await convex.mutation(api.system.updateMessageContent, {
+        internalKey,
+        messageId: assistantMessageId,
+        content:
+          "⚠️ **Inngest Dev Server is not running.**\n\nBackground AI execution requires the Inngest local runner in development.\nPlease start it in your terminal by running:\n```bash\nnpm run inngest:dev\n```\n(Or configure `INNGEST_EVENT_KEY` in `.env.local` if using Inngest Cloud).",
+      });
+    }
 
     return NextResponse.json({
         success:true,
-        eventId:event.ids[0],
+        eventId,
         messageId:assistantMessageId
     })
 }

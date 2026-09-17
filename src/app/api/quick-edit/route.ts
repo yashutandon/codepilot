@@ -1,6 +1,5 @@
-import { generateText, Output } from "ai";
 import { NextResponse } from "next/server";
-import { openai } from "@ai-sdk/openai";
+import { generateObjectWithFallback } from "@/lib/ai-models";
 import z from "zod";
 
 import { firecrawl } from "@/lib/firecrawl";
@@ -83,14 +82,13 @@ export async function POST(request: Request) {
       .replace("{instruction}", instruction)
       .replace("{documentation}", documentationContext);
 
-    const { output } = await generateText({
-      model: openai("gpt-4.1-mini"),
-      output: Output.object({ schema: quickEditSchema }),
+    const { object } = await generateObjectWithFallback({
+      schema: quickEditSchema,
       prompt,
     });
 
     return NextResponse.json({
-      editedCode: output.editedCode,
+      editedCode: object.editedCode,
     });
   } catch (error) {
     console.error("Edit error:", error);

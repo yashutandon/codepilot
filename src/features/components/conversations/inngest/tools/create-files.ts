@@ -12,7 +12,7 @@ interface CreateFilesToolOptions {
 }
 
 const paramsSchema = z.object({
-  parentId: z.string(),
+  parentId: z.string().nullable().optional(),
   files: z
     .array(
       z.object({
@@ -30,18 +30,19 @@ export const createCreateFilesTool = ({
   return createTool({
     name: "createFiles",
     description:
-      "Create multiple files at once in the same folder. Use this to batch create files that share the same parent folder. More efficient than creating files one by one.",
+      "Create multiple files at once in the project. For root level files (e.g. package.json, index.html, vite.config.js), pass parentId as null. For subdirectories, pass the parent folder ID from listFiles.",
     parameters: z.object({
       parentId: z
         .string()
+        .nullable()
         .describe(
-          "The ID of the parent folder. Use empty string for root level. Must be a valid folder ID from listFiles."
+          "The ID of the parent folder from listFiles, or null for root level directory."
         ),
       files: z
         .array(
           z.object({
-            name: z.string().describe("The file name including extension"),
-            content: z.string().describe("The file content"),
+            name: z.string().describe("The file name including extension (e.g. 'package.json', 'src/App.jsx')"),
+            content: z.string().describe("The full code content of the file"),
           })
         )
         .describe("Array of files to create"),

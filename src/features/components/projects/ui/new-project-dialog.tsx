@@ -38,23 +38,36 @@ export const NewProjectDialog = ({
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleSubmit = async (message: PromptInputMessage) => {
-    if (!message.text) return;
+    const text = (message.text || input).trim();
+    if (!text) return;
 
     setIsSubmitting(true);
 
     try {
       const { projectId } = await ky
         .post("/api/projects/create-with-prompt", {
-          json: { prompt: message.text.trim() },
+          json: { prompt: text },
+          timeout: 60000,
+          credentials: "same-origin",
         })
         .json<{ projectId: Id<"projects"> }>();
 
-      toast.success("Project created");
+      toast.success("Project created!");
       onOpenChange(false);
       setInput("");
       router.push(`/project/${projectId}`);
-    } catch {
-      toast.error("Unable to create project");
+    } catch (err: any) {
+      let errMsg = "Unable to create project. Please try again.";
+      try {
+        if (err.response) {
+          const body = await err.response.json();
+          if (body?.error) errMsg = body.error;
+        } else if (err.message) {
+          errMsg = err.message;
+        }
+      } catch {}
+      console.error("Project creation error:", err);
+      toast.error(errMsg);
     } finally {
       setIsSubmitting(false);
     }
