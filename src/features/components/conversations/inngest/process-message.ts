@@ -3,21 +3,16 @@ import { Id } from "../../../../../convex/_generated/dataModel";
 import { NonRetriableError } from "inngest";
 import { convex } from "@/lib/convex-client";
 import { api } from "../../../../../convex/_generated/api";
-import { CODING_AGENT_SYSTEM_PROMPT, TITLE_GENERATOR_SYSTEM_PROMPT } from "./constants";
+import { ARCHITECT_SYSTEM_PROMPT, CODER_SYSTEM_PROMPT, TITLE_GENERATOR_SYSTEM_PROMPT } from "./constants";
 import { DEFAULT_CONVERSATION_TITLE } from "../../../../../convex/constants";
-import { createAgent, createNetwork } from "@inngest/agent-kit";
+import { createAgent } from "@inngest/agent-kit";
 import {
-    getInngestCodingModelCandidates,
+    getCodingModelCandidates,
     getInngestTitleModelCandidates,
+    generateObjectWithFallback,
+    generateTextWithFallback
 } from "@/lib/ai-models";
-import { createReadFilesTool } from "./tools/read-files";
-import { createListFilesTool } from "./tools/list-files";
-import { createUpdateFilesTool } from "./tools/update-files";
-import { createCreateFilesTool } from "./tools/create-files";
-import { createCreateFolderTool } from "./tools/create-folders";
-import { createRenameFileTool } from "./tools/rename-file";
-import { createScrapeUrlsTool } from "./tools/scrape-urls";
-import { createDeleteFilesTool } from "./tools/delete-files";
+import { z } from "zod";
 
 interface MessageEvent{
     messageId:Id<"messages">,
@@ -25,6 +20,13 @@ interface MessageEvent{
     projectId:Id<"projects">
     message:string;
 }
+
+const architectSchema = z.object({
+    files: z.array(z.object({
+        path: z.string().describe("The file path, e.g., 'src/App.jsx' or 'package.json'"),
+        instruction: z.string().describe("Detailed instructions for the coder agent on what to write in this file")
+    }))
+});
 
 export const processMessage= inngest.createFunction(
     {
@@ -80,13 +82,11 @@ export const processMessage= inngest.createFunction(
             })
         })
 
-        
-        let systemPrompt=CODING_AGENT_SYSTEM_PROMPT;
+        let historyText = "";
         const contextMessages=recentMessages.filter((msg)=>msg._id!==messageId && msg.content.trim()!== "")
 
         if(contextMessages.length>0){
-            const historyText=contextMessages.map((msg)=>`${msg.role.toUpperCase()}:${msg.content}`).join("\n\n");
-            systemPrompt += `\n\n## Previous Conversation (for context only - do NOT repeat these responses):\n${historyText}\n\n## Current Request:\nRespond ONLY to the user's new message below. Do not repeat or reference your previous responses.`;
+            historyText=contextMessages.map((msg)=>`${msg.role.toUpperCase()}:${msg.content}`).join("\n\n");
         }
 
         const shouldGenerateTitle=conversation.title===DEFAULT_CONVERSATION_TITLE;
@@ -142,151 +142,136 @@ export const processMessage= inngest.createFunction(
             }
         }
 
-        const tools = [
-            createReadFilesTool({internalKey}),
-            createListFilesTool({internalKey,projectId}),
-            createUpdateFilesTool({internalKey}),
-            createCreateFilesTool({projectId,internalKey}),
-            createCreateFolderTool({projectId,internalKey}),
-            createRenameFileTool({internalKey}),
-            createDeleteFilesTool({internalKey}),
-            createScrapeUrlsTool()
-        ];
-
-        const codingCandidates = getInngestCodingModelCandidates();
-        let assistantResponse = "I processed your request. Let me know if you need anything else!";
-        let succeededModel = "";
-        const attemptedErrors: string[] = [];
-
-        for (let i = 0; i < codingCandidates.length; i++) {
-            const candidate = codingCandidates[i];
-            console.log(`[Inngest Agent] Attempting coding agent with ${candidate.name} (${i + 1}/${codingCandidates.length})...`);
-
-            try {
-                const codingAgent = createAgent({
-                    name: `codepilot-${i}`,
-                    description: "An expert AI coding assistant",
-                    system: systemPrompt,
-                    model: candidate.getModel(),
-                    tools,
+        // ==========================================
+        // Phase 1: Architect (Planning)
+        // ==========================================
+        let architectPlan: { files: { path: string, instruction: string }[] } | null = null;
+        try {
+            architectPlan = await step.run("architect-phase", async () => {
+                const candidates = getCodingModelCandidates();
+                const { object } = await generateObjectWithFallback({
+                    schema: architectSchema,
+                    system: ARCHITECT_SYSTEM_PROMPT,
+                    prompt: historyText ? `Project Context:\n${historyText}\n\nNew Request: ${message}` : `New Request: ${message}`,
+                    candidates
                 });
-
-                const network = createNetwork({
-                    name: `codepilot-network-${i}`,
-                    agents: [codingAgent],
-                    maxIter: 10,
-                    router: ({ network }) => {
-                        const lastResult = network.state.results.at(-1);
-                        const hasTextResponse = lastResult?.output.some(
-                            (m) => m.type === "text" && m.role === "assistant"
-                        );
-                        const hasToolCalls = lastResult?.output.some(
-                            (m) => m.type === "tool_call"
-                        );
-                        if (hasTextResponse && !hasToolCalls) {
-                            return undefined;
-                        }
-                        return codingAgent;
-                    },
+                return object;
+            });
+            console.log(`[Architect] Planned ${architectPlan?.files?.length || 0} files to create/modify.`);
+        } catch (error: any) {
+            console.error("[Architect] Failed to generate plan:", error);
+            await step.run("update-message-on-plan-failure",async () =>{
+                await convex.mutation(api.system.updateMessageContent,{
+                    internalKey,
+                    messageId,
+                    content:`⚠️ The AI Architect failed to generate a project plan. Error: ${error.message || String(error)}`
                 });
+            });
+            return { success: false, messageId };
+        }
 
-                const result = await network.run(message);
-                const lastResult = result.state.results.at(-1);
-                const textMessage = lastResult?.output.find(
-                    (m) => m.type === "text" && m.role === "assistant"
-                );
+        // ==========================================
+        // Phase 2: Parallel Coders
+        // ==========================================
+        let generatedFiles: { path: string, content: string }[] = [];
+        try {
+            if (architectPlan && architectPlan.files.length > 0) {
+                generatedFiles = await step.run("parallel-coders-phase", async () => {
+                    const planOverview = JSON.stringify(architectPlan!.files.map(f => f.path), null, 2);
+                    
+                    const files = await Promise.all(
+                        architectPlan!.files.map(async (file) => {
+                            const coderPrompt = `
+Architect Plan Overview (All files in project):
+${planOverview}
 
-                if (textMessage?.type === "text") {
-                    assistantResponse = typeof textMessage.content === "string"
-                        ? textMessage.content
-                        : textMessage.content.map((c) => c.text).join("");
-                }
+Your Assignment:
+File to write: ${file.path}
+Instructions: ${file.instruction}
 
-                succeededModel = candidate.name;
-                console.log(`[Inngest Agent] ✅ Successfully processed request with ${candidate.name}`);
-                break;
-            } catch (networkErr: any) {
-                const errMsg = networkErr?.message || String(networkErr);
-                console.warn(`[Inngest Agent] ⚠️ Model ${candidate.name} failed: ${errMsg}`);
-                attemptedErrors.push(`${candidate.name}: ${errMsg}`);
+Remember: Output ONLY the raw code for this file. No markdown formatting (\`\`\`js etc), no explanations. Just the code.
+`;
+                            const candidates = getCodingModelCandidates();
+                            const { text } = await generateTextWithFallback({
+                                system: CODER_SYSTEM_PROMPT,
+                                prompt: coderPrompt,
+                                candidates
+                            });
 
-                if (errMsg.includes("429") && i < codingCandidates.length - 1) {
-                    console.log(`[Inngest Agent] Rate limit reached on ${candidate.name}. Falling back immediately to next model...`);
-                    await new Promise((r) => setTimeout(r, 1500));
-                }
+                            // Clean any potential markdown blocks the model might incorrectly include
+                            let cleanContent = text.trim();
+                            if (cleanContent.startsWith("```")) {
+                                const firstNewline = cleanContent.indexOf("\n");
+                                if (firstNewline !== -1) cleanContent = cleanContent.slice(firstNewline + 1);
+                                if (cleanContent.endsWith("```")) {
+                                    cleanContent = cleanContent.slice(0, -3).trim();
+                                }
+                            }
+
+                            return {
+                                path: file.path,
+                                content: cleanContent
+                            };
+                        })
+                    );
+                    return files;
+                });
+                console.log(`[Parallel Coders] Successfully generated ${generatedFiles.length} files.`);
             }
+        } catch (error: any) {
+            console.error("[Parallel Coders] Failed to generate code:", error);
+             await step.run("update-message-on-code-failure",async () =>{
+                await convex.mutation(api.system.updateMessageContent,{
+                    internalKey,
+                    messageId,
+                    content:`⚠️ A Coder agent failed to generate a file. Error: ${error.message || String(error)}`
+                });
+            });
+            return { success: false, messageId };
         }
 
-        if (!succeededModel) {
-            assistantResponse = `⚠️ **Error processing request**: All AI models in the fallback chain were attempted and failed.\n\n**Attempted models:**\n${attemptedErrors.map((e) => `- ${e}`).join("\n")}\n\nPlease try again or verify your API keys.`;
-        }
-
-        await step.run("ensure-package-json", async () => {
-            const projectFiles = await convex.query(api.system.getProjectFiles, {
+        // ==========================================
+        // Phase 3: Commit Phase
+        // ==========================================
+        await step.run("commit-phase", async () => {
+            // Check if files already exist to update them instead of inserting new
+            const existingProjectFiles = await convex.query(api.system.getProjectFiles, {
                 internalKey,
                 projectId,
             });
 
-            if (projectFiles && projectFiles.length > 0) {
-                const hasPkg = projectFiles.some((f) => f.name === "package.json");
-                if (!hasPkg) {
-                    const defaultPkg = {
-                        name: "codepilot-app",
-                        private: true,
-                        version: "0.1.0",
-                        type: "module",
-                        scripts: {
-                            dev: "vite",
-                            start: "vite",
-                            build: "vite build",
-                            preview: "vite preview"
-                        },
-                        dependencies: {
-                            react: "^18.3.1",
-                            "react-dom": "^18.3.1",
-                            "lucide-react": "^0.454.0",
-                            "clsx": "^2.1.1",
-                            "tailwind-merge": "^2.5.4"
-                        },
-                        devDependencies: {
-                            "@vitejs/plugin-react": "^4.3.3",
-                            vite: "^5.4.10"
-                        }
-                    };
-
-                    await convex.mutation(api.system.createFile, {
+            for (const file of generatedFiles) {
+                const existingFile = existingProjectFiles?.find(f => f.name === file.path);
+                
+                if (existingFile) {
+                    await convex.mutation(api.system.updateFile, {
                         internalKey,
-                        projectId,
-                        name: "package.json",
-                        content: JSON.stringify(defaultPkg, null, 2),
+                        fileId: existingFile._id,
+                        content: file.content
                     });
-                }
-
-                const hasViteConfig = projectFiles.some(
-                    (f) => f.name === "vite.config.js" || f.name === "vite.config.ts"
-                );
-                if (!hasViteConfig) {
+                } else {
                     await convex.mutation(api.system.createFile, {
                         internalKey,
                         projectId,
-                        name: "vite.config.js",
-                        content: "import { defineConfig } from 'vite';\nimport react from '@vitejs/plugin-react';\n\nexport default defineConfig({\n  plugins: [react()],\n});\n",
+                        name: file.path,
+                        content: file.content,
                     });
                 }
             }
         });
 
         await step.run("update-assitant-message",async () => {
+            const filesList = generatedFiles.map(f => `- ` + f.path).join("\n");
             await convex.mutation(api.system.updateMessageContent,{
                 internalKey,
                 messageId,
-                content:assistantResponse
-            })
-        })
+                content: `I have generated your project using a parallel multi-agent architecture!\n\n**Files Generated:**\n${filesList}\n\nLet me know if you need anything else.`
+            });
+        });
 
         return {
             success:true,
             messageId
-        }
+        };
     }
-)
+);

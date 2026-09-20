@@ -167,7 +167,7 @@ export const UnauthView = () => {
             <div className="hidden md:flex col-span-3 bg-[#161b22] border-l border-[#30363d] p-3 flex-col justify-between">
               <div className="space-y-2">
                 <div className="flex items-center gap-1.5 text-white font-semibold text-xs border-b border-[#30363d] pb-2">
-                  <SparklesIcon className="size-3 text-[#3fb950]" />
+          
                   <span>AI Assistant</span>
                 </div>
                 <div className="bg-[#21262d] p-2 rounded border border-[#30363d] text-[#c9d1d9] text-[11px]">

@@ -1,8 +1,9 @@
 "use client";
 
 import { Kbd } from "@/components/ui/kbd";
-import { Plus, SearchIcon, SparklesIcon } from "lucide-react";
+import { Plus, SearchIcon, SparklesIcon, TerminalSquareIcon } from "lucide-react";
 import Image from "next/image";
+import Link from "next/link";
 import { FaGithub } from "react-icons/fa";
 import { ProjectList } from "./projects-list";
 import { useEffect, useState } from "react";
@@ -83,7 +84,7 @@ export const ProjectView = () => {
             {/* Title */}
             <div className="text-center space-y-1.5">
               <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded bg-muted text-muted-foreground text-xs font-mono border border-border mb-1">
-                <SparklesIcon className="size-3 text-emerald-400" />
+
                 <span>AI Developer Workspace</span>
               </div>
               <h1 className="text-2xl md:text-3xl font-bold tracking-tight text-foreground">
@@ -95,7 +96,7 @@ export const ProjectView = () => {
             </div>
 
             {/* Quick Actions Grid */}
-            <div className="grid grid-cols-2 gap-3 w-full">
+            <div className="grid grid-cols-2 md:grid-cols-3 gap-3 w-full">
               <button
                 type="button"
                 onClick={() => setNewProjectDialogOpen(true)}
@@ -141,6 +142,28 @@ export const ProjectView = () => {
                   </span>
                 </div>
               </button>
+
+              <Link
+                href="/playground"
+                className="group p-3.5 rounded-lg bg-card border border-border hover:border-violet-500/60 hover:bg-muted/60 text-left transition-all flex flex-col justify-between gap-3 shadow-xs"
+              >
+                <div className="flex items-center justify-between w-full">
+                  <div className="size-7 rounded bg-muted border border-border flex items-center justify-center text-violet-400 group-hover:scale-105 transition-transform">
+                    <TerminalSquareIcon className="size-3.5" />
+                  </div>
+                  <Kbd className="bg-background border border-border text-[10px] text-muted-foreground">
+                    Playground
+                  </Kbd>
+                </div>
+                <div>
+                  <span className="font-semibold text-xs text-foreground block">
+                    Code Playground
+                  </span>
+                  <span className="text-[11px] text-muted-foreground">
+                    Run C, C++, Java, Rust &amp; more
+                  </span>
+                </div>
+              </Link>
             </div>
 
             {/* Quick Search Filter */}

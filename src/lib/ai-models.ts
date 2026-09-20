@@ -36,7 +36,6 @@ function getApiKeys() {
     groq: process.env.GROQ_API_KEY,
     gemini: process.env.GOOGLE_GENERATIVE_AI_API_KEY || process.env.GEMINI_API_KEY,
     hf: process.env.HUGGINGFACE_API_KEY || process.env.HF_TOKEN,
-    openai: process.env.OPENAI_API_KEY,
   };
 }
 
@@ -84,7 +83,7 @@ export function getActiveAiProvider(): {
   if (keys.hf) {
     return { provider: "huggingface", name: "Qwen3 Coder (Hugging Face)" };
   }
-  return { provider: "openai", name: "OpenAI (GPT-4o-mini)" };
+  return { provider: "google", name: "Google Gemini 2.5 Flash" }; // Default to google if none found
 }
 
 // ---------------------------------------------------------------------------
@@ -192,21 +191,6 @@ export function getInngestCodingModelCandidates(): InngestModelCandidate[] {
     }
   }
 
-  // 4. OpenAI
-  if (keys.openai) {
-    candidates.push({
-      id: "gpt-4o-mini",
-      name: "GPT-4o-mini (OpenAI)",
-      provider: "openai",
-      supportsTools: true,
-      getModel: () =>
-        inngestOpenai({
-          model: "gpt-4o-mini",
-          apiKey: keys.openai!,
-        }),
-    });
-  }
-
   return candidates;
 }
 
@@ -291,21 +275,6 @@ export function getInngestTitleModelCandidates(): InngestModelCandidate[] {
     });
   }
 
-  // OpenAI
-  if (keys.openai) {
-    candidates.push({
-      id: "gpt-4o-mini",
-      name: "GPT-4o-mini (OpenAI)",
-      provider: "openai",
-      supportsTools: true,
-      getModel: () =>
-        inngestOpenai({
-          model: "gpt-4o-mini",
-          apiKey: keys.openai!,
-        }),
-    });
-  }
-
   return candidates;
 }
 
@@ -317,9 +286,10 @@ export function getInngestCodingModel() {
   if (candidates.length > 0) {
     return candidates[0].getModel();
   }
-  return inngestOpenai({
-    model: "gpt-4o-mini",
-    apiKey: process.env.OPENAI_API_KEY || "",
+  // Default to Gemini
+  return inngestGemini({
+    model: "gemini-2.5-flash",
+    apiKey: process.env.GOOGLE_GENERATIVE_AI_API_KEY || process.env.GEMINI_API_KEY || "",
   });
 }
 
@@ -331,9 +301,10 @@ export function getInngestTitleModel() {
   if (candidates.length > 0) {
     return candidates[0].getModel();
   }
-  return inngestOpenai({
-    model: "gpt-4o-mini",
-    apiKey: process.env.OPENAI_API_KEY || "",
+  // Default to Gemini
+  return inngestGemini({
+    model: "gemini-2.5-flash",
+    apiKey: process.env.GOOGLE_GENERATIVE_AI_API_KEY || process.env.GEMINI_API_KEY || "",
   });
 }
 
@@ -423,17 +394,6 @@ export function getCodingModelCandidates(): AiModelCandidate[] {
     });
   }
 
-  // 4. OpenAI
-  if (keys.openai) {
-    const standardOpenAI = createOpenAI({ apiKey: keys.openai });
-    candidates.push({
-      id: "gpt-4o-mini",
-      name: "GPT-4o-mini (OpenAI)",
-      provider: "openai",
-      getModel: () => standardOpenAI("gpt-4o-mini"),
-    });
-  }
-
   return candidates;
 }
 
@@ -495,16 +455,6 @@ export function getSuggestionModelCandidates(): AiModelCandidate[] {
     });
   }
 
-  if (keys.openai) {
-    const standardOpenAI = createOpenAI({ apiKey: keys.openai });
-    candidates.push({
-      id: "gpt-4o-mini",
-      name: "GPT-4o-mini (OpenAI)",
-      provider: "openai",
-      getModel: () => standardOpenAI("gpt-4o-mini"),
-    });
-  }
-
   return candidates;
 }
 
@@ -516,8 +466,7 @@ export function getCodingModel() {
   if (candidates.length > 0) {
     return candidates[0].getModel();
   }
-  const standardOpenAI = createOpenAI({ apiKey: process.env.OPENAI_API_KEY });
-  return standardOpenAI("gpt-4o-mini");
+  return google("gemini-2.5-flash");
 }
 
 /**
@@ -528,8 +477,7 @@ export function getSuggestionModel() {
   if (candidates.length > 0) {
     return candidates[0].getModel();
   }
-  const standardOpenAI = createOpenAI({ apiKey: process.env.OPENAI_API_KEY });
-  return standardOpenAI("gpt-4o-mini");
+  return google("gemini-2.5-flash");
 }
 
 // ---------------------------------------------------------------------------

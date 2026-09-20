@@ -150,7 +150,6 @@ export const Navbar = ({ projectId }: { projectId: Id<"projects"> }) => {
         <Tooltip>
           <TooltipTrigger asChild>
             <div className="hidden md:flex items-center gap-1.5 px-2.5 py-1 rounded bg-muted border border-border text-[10px] font-mono text-muted-foreground cursor-help">
-              <SparklesIcon className="size-3 text-emerald-400" />
               <span>Groq &bull; Auto-Fallback</span>
             </div>
           </TooltipTrigger>

@@ -144,7 +144,6 @@ export const ConversationSidebar = ({ projectId }: ConversationSidebarProps) => 
         {/* Sidebar Header */}
         <div className="h-9 flex items-center justify-between px-3 border-b border-border shrink-0 bg-sidebar">
           <div className="flex items-center gap-2 min-w-0">
-            <SparklesIcon className="size-3.5 text-muted-foreground shrink-0" />
             <span className="text-xs font-semibold text-foreground truncate">
               {activeConversation?.title ?? DEFAULT_CONVERSATION_TITLE}
             </span>

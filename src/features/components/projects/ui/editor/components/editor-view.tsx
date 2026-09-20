@@ -159,11 +159,6 @@ export const EditorView = ({ projectId }: { projectId: Id<"projects"> }) => {
             </>
           )}
           <ThemeSelector compact className="h-5 px-1.5 text-[10px]" />
-          <span className="text-border">|</span>
-          <div className="flex items-center gap-1 text-primary hover:opacity-80 transition-opacity" title="Multi-Model Auto-Fallback: Groq -> Gemini -> Hugging Face -> OpenAI">
-            <SparklesIcon className="size-3 text-emerald-400" />
-            <span className="font-sans font-medium text-[10px] text-emerald-400">Auto-Fallback Active</span>
-          </div>
         </div>
       </footer>
     </div>
