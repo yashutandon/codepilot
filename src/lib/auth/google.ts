@@ -11,15 +11,24 @@ export interface GoogleUserProfile {
 }
 
 export function getGoogleClientId(): string {
-  return (
+  const raw =
     process.env.GOOGLE_CLIENT_ID ||
     process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID ||
-    ""
-  ).trim();
+    process.env.GOOGLE_OAUTH_CLIENT_ID ||
+    process.env.GOOGLE_ID ||
+    "";
+  return raw.replace(/^["']|["']$/g, "").trim();
 }
 
 export function getGoogleClientSecret(): string {
-  return (process.env.GOOGLE_CLIENT_SECRET || "").trim();
+  const raw =
+    process.env.GOOGLE_CLIENT_SECRET ||
+    process.env.GOOGLE_SECRET ||
+    process.env.GOOGLE_SECRET_KEY ||
+    process.env.GOOGLE_CLIENT_SECRET_KEY ||
+    process.env.GOOGLE_OAUTH_CLIENT_SECRET ||
+    "";
+  return raw.replace(/^["']|["']$/g, "").trim();
 }
 
 export function isGoogleAuthConfigured(): boolean {

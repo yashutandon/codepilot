@@ -72,6 +72,8 @@ export function AuthDialog() {
   const [googleConfig, setGoogleConfig] = useState<{
     configured: boolean;
     clientId: string | null;
+    hasClientId?: boolean;
+    hasSecret?: boolean;
   } | null>(null);
 
   const gisInitializedRef = useRef(false);
@@ -335,16 +337,29 @@ export function AuthDialog() {
                 <span>Google OAuth Credentials Setup</span>
               </div>
               <p className="text-[11px] text-[#8b949e] leading-relaxed">
-                To sign in with Google, add your Google Cloud OAuth Client credentials to{" "}
+                Add your Google Cloud OAuth Client credentials to{" "}
                 <code className="text-amber-200/90 font-mono bg-[#0d1117] px-1 py-0.5 rounded border border-[#30363d]">
                   .env.local
-                </code>
-                :
+                </code>{" "}
+                (locally) or <strong className="text-white">Vercel Environment Variables</strong> (in production):
               </p>
-              <div className="space-y-1.5 font-mono text-[10px] bg-[#0d1117] p-2 rounded border border-[#30363d] text-[#c9d1d9]">
-                <div>GOOGLE_CLIENT_ID=your_client_id.apps.googleusercontent.com</div>
-                <div>GOOGLE_CLIENT_SECRET=your_client_secret</div>
+              <div className="space-y-1.5 font-mono text-[10px] bg-[#0d1117] p-2.5 rounded border border-[#30363d] text-[#c9d1d9]">
+                <div className="flex items-center justify-between">
+                  <span>GOOGLE_CLIENT_ID</span>
+                  <span className={googleConfig?.hasClientId ? "text-emerald-400 font-sans text-[10px]" : "text-amber-400 font-sans text-[10px]"}>
+                    {googleConfig?.hasClientId ? "✓ Detected" : "✗ Missing"}
+                  </span>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span>GOOGLE_CLIENT_SECRET</span>
+                  <span className={googleConfig?.hasSecret ? "text-emerald-400 font-sans text-[10px]" : "text-amber-400 font-sans text-[10px]"}>
+                    {googleConfig?.hasSecret ? "✓ Detected" : "✗ Missing"}
+                  </span>
+                </div>
               </div>
+              <p className="text-[10px] text-[#8b949e] leading-relaxed">
+                <span className="text-amber-300 font-medium">Important for Vercel:</span> After adding environment variables in Vercel Settings, you <strong className="text-white">MUST Redeploy</strong> your latest deployment so the variables take effect.
+              </p>
               <div className="flex items-center justify-between gap-2 pt-1">
                 <span className="text-[10px] text-[#8b949e] font-mono truncate">
                   URI: {getCallbackUrl()}
@@ -354,7 +369,7 @@ export function AuthDialog() {
                   size="sm"
                   variant="outline"
                   onClick={copyCallbackUrl}
-                  className="h-6 px-2 text-[10px] bg-[#21262d] border-[#30363d] text-white hover:bg-[#30363d] shrink-0 flex items-center gap-1"
+                  className="h-6 px-2 text-[10px] bg-[#21262d] border-[#30363d] text-white hover:bg-[#30363d] shrink-0 flex items-center gap-1 cursor-pointer"
                 >
                   {copiedUri ? (
                     <>
