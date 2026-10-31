@@ -222,18 +222,6 @@ export function AuthDialog() {
     setIsLoading(true);
 
     try {
-      // If Google Identity Services is available and ready, attempt popup/prompt
-      if (window.google?.accounts?.id && googleConfig?.clientId) {
-        window.google.accounts.id.prompt((notification: any) => {
-          if (notification?.isNotDisplayed?.() || notification?.isSkippedMoment?.()) {
-            // Fallback to server redirect flow if prompt is blocked/skipped
-            window.location.href = "/api/auth/google";
-          }
-        });
-        setIsLoading(false);
-        return;
-      }
-
       // Check if configured; if not, show clear instructions
       if (googleConfig && !googleConfig.configured) {
         setShowGoogleSetupGuide(true);
@@ -242,7 +230,7 @@ export function AuthDialog() {
       }
 
       // Standard server-side redirect to Google OAuth
-      await loginWithGoogle();
+      window.location.href = "/api/auth/google";
     } catch (err) {
       if (err instanceof Error) {
         if (err.message.includes("not configured")) {
@@ -253,7 +241,6 @@ export function AuthDialog() {
       } else {
         setErrorMessage("Failed to initiate Google sign-in.");
       }
-    } finally {
       setIsLoading(false);
     }
   };
