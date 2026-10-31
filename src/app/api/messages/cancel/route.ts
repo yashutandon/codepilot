@@ -1,6 +1,6 @@
 import {z} from "zod"
 import { NextResponse } from "next/server"
-import { auth } from "@clerk/nextjs/server"
+import { getAuth } from "@/lib/auth/server"
 import { inngest } from "@/inngest/client"
 import { convex } from "@/lib/convex-client"
 import { api } from "../../../../../convex/_generated/api"
@@ -11,7 +11,7 @@ const requestSchema=z.object({
 })
 
 export async function POST (request:Request){
-    const {userId}=await auth();
+    const {userId}=await getAuth(request);
     if(!userId){
         return NextResponse.json({error:"Unauthorized"},{
             status:401

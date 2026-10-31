@@ -161,7 +161,7 @@ export const HtmlPreview = ({ files = [] }: HtmlPreviewProps) => {
               {activeHtmlFile.name}
             </span>
           )}
-          <span className="text-[10px] text-muted-foreground font-sans px-1.5 py-0.2 rounded bg-muted/60">
+          <span className="text-[11px] text-muted-foreground font-sans px-1.5 py-0.5 rounded bg-muted/60">
             Live Static
           </span>
         </div>

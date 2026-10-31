@@ -93,7 +93,7 @@ export const ThemeSelector = ({ compact = false, className }: ThemeSelectorProps
             <span className="text-[11px] font-semibold text-foreground uppercase tracking-wider">
               Editor Themes
             </span>
-            <span className="text-[10px] font-mono text-muted-foreground">
+            <span className="text-[11px] font-mono text-muted-foreground">
               {EDITOR_THEMES.length} themes
             </span>
           </div>
@@ -130,7 +130,7 @@ export const ThemeSelector = ({ compact = false, className }: ThemeSelectorProps
         ) : (
           Object.entries(categories).map(([category, themes]) => (
             <DropdownMenuGroup key={category} className="mb-1">
-              <DropdownMenuLabel className="text-[10px] uppercase font-bold text-muted-foreground/70 px-2 py-1 tracking-wider">
+              <DropdownMenuLabel className="text-[11px] uppercase font-bold text-muted-foreground/70 px-2 py-1 tracking-wider">
                 {category}
               </DropdownMenuLabel>
               {themes.map((theme) => {

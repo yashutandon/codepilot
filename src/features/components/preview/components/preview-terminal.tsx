@@ -42,7 +42,7 @@ export const PreviewTerminal = ({
       disableStdin: false,
       cursorBlink: true,
       fontSize: 12,
-      fontFamily: "'Fira Code', 'JetBrains Mono', Menlo, Monaco, Consolas, monospace",
+      fontFamily: "'JetBrains Mono', 'Fira Code', Menlo, Monaco, Consolas, monospace",
       theme: {
         background: "#18181b",
         foreground: "#f4f4f5",
@@ -161,7 +161,7 @@ export const PreviewTerminal = ({
         {/* Presets row */}
         <div className="flex items-center justify-between gap-1 text-[11px]">
           <div className="flex items-center gap-1 overflow-x-auto no-scrollbar">
-            <span className="text-muted-foreground text-[10px] uppercase font-mono mr-1">
+            <span className="text-muted-foreground text-[11px] uppercase font-mono mr-1">
               Quick:
             </span>
             <button
@@ -200,7 +200,7 @@ export const PreviewTerminal = ({
                 type="button"
                 size="sm"
                 variant="destructive"
-                className="h-5 px-2 text-[10px] gap-1"
+                className="h-5 px-2 text-[11px] gap-1"
                 onClick={onKillCommand}
                 title="Stop current command"
               >
@@ -213,7 +213,7 @@ export const PreviewTerminal = ({
                 type="button"
                 size="sm"
                 variant="ghost"
-                className="h-5 px-1.5 text-[10px] text-muted-foreground hover:text-foreground"
+                className="h-5 px-1.5 text-[11px] text-muted-foreground hover:text-foreground"
                 onClick={onClearTerminal}
                 title="Clear terminal"
               >

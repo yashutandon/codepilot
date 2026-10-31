@@ -3,7 +3,7 @@ import { generateObjectWithFallback } from "@/lib/ai-models";
 import z from "zod";
 
 import { firecrawl } from "@/lib/firecrawl";
-import { auth } from "@clerk/nextjs/server";
+import { getAuth } from "@/lib/auth/server";
 
 const quickEditSchema = z.object({
   editedCode: z.string().describe("The edited code"),
@@ -37,7 +37,7 @@ If the instruction is unclear or cannot be applied, return the original code unc
 
 export async function POST(request: Request) {
   try {
-    const { userId } = await auth();
+    const { userId } = await getAuth(request);
     const { selectedCode, fullCode, instruction } = await request.json();
 
     if (!userId) {

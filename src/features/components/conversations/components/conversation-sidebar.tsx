@@ -27,8 +27,8 @@ import {
   HistoryIcon,
   LoaderIcon,
   PlusIcon,
-  SparklesIcon,
-  Wand2Icon,
+  BotIcon,
+  TerminalIcon,
 } from "lucide-react";
 import ky from "ky";
 import { toast } from "sonner";
@@ -48,10 +48,10 @@ interface ConversationSidebarProps {
 }
 
 const STARTER_PROMPTS = [
-  "Explain this project architecture & file structure",
-  "Refactor components for performance & clean code",
-  "Add interactive UI elements with Tailwind CSS",
-  "Audit for bugs and suggest automated tests",
+  "Explain project architecture & entry points",
+  "Refactor components for performance and clean code",
+  "Add strict TypeScript types & error boundaries",
+  "Suggest automated unit tests & edge cases",
 ];
 
 export const ConversationSidebar = ({ projectId }: ConversationSidebarProps) => {
@@ -140,11 +140,11 @@ export const ConversationSidebar = ({ projectId }: ConversationSidebarProps) => 
         onOpenChange={setPastConversationOpen}
         onSelect={setSelectedConversationId}
       />
-      <div className="flex flex-col h-full bg-sidebar border-l border-border select-none">
+      <div className="flex flex-col h-full bg-sidebar border-l border-border/80">
         {/* Sidebar Header */}
-        <div className="h-9 flex items-center justify-between px-3 border-b border-border shrink-0 bg-sidebar">
+        <div className="h-9 flex items-center justify-between px-3 border-b border-border/70 shrink-0 bg-sidebar">
           <div className="flex items-center gap-2 min-w-0">
-            <span className="text-xs font-semibold text-foreground truncate">
+            <span className="text-xs font-semibold text-foreground truncate font-mono">
               {activeConversation?.title ?? DEFAULT_CONVERSATION_TITLE}
             </span>
           </div>
@@ -153,7 +153,7 @@ export const ConversationSidebar = ({ projectId }: ConversationSidebarProps) => 
               <Button
                 size="sm"
                 variant="ghost"
-                className="h-6 px-2 text-[10px] text-destructive hover:bg-destructive/10"
+                className="h-6 px-2 text-[11px] text-destructive hover:bg-destructive/10"
                 onClick={handleCancel}
                 title="Cancel current request"
               >
@@ -185,28 +185,27 @@ export const ConversationSidebar = ({ projectId }: ConversationSidebarProps) => 
         <Conversation className="flex-1 overflow-y-auto">
           <ConversationContent className="p-3 space-y-4">
             {(!conversationMessages || conversationMessages.length === 0) && (
-              <div className="py-8 flex flex-col items-center text-center px-2">
-                <div className="size-10 rounded-lg bg-card border border-border flex items-center justify-center text-foreground mb-3">
-                  <Wand2Icon className="size-5 text-muted-foreground" />
+              <div className="py-6 flex flex-col px-1 gap-4">
+                <div className="p-3 rounded-lg bg-card/60 border border-border/60">
+                  <div className="flex items-center gap-2 text-foreground font-medium text-xs mb-1">
+                    <BotIcon className="size-3.5 text-primary" />
+                    <span>Developer Assistant</span>
+                  </div>
+                  <p className="text-xs text-muted-foreground leading-relaxed">
+                    Context-aware AI with full project access. Generate components, inspect files, or refactor logic.
+                  </p>
                 </div>
-                <h4 className="text-xs font-bold text-foreground mb-1">
-                  CodePilot Assistant
-                </h4>
-                <p className="text-[11px] text-muted-foreground leading-relaxed max-w-xs mb-4">
-                  Ask questions, generate components, or execute multi-file edits across your project.
-                </p>
 
-                {/* Starter suggestions */}
                 <div className="flex flex-col gap-1.5 w-full">
-                  <span className="text-[10px] uppercase font-bold text-muted-foreground/60 tracking-wider text-left pl-1">
-                    Suggested prompts
+                  <span className="text-[11px] font-mono uppercase tracking-wider text-muted-foreground px-1">
+                    Quick suggestions
                   </span>
                   {STARTER_PROMPTS.map((prompt) => (
                     <button
                       key={prompt}
                       type="button"
                       onClick={() => handlePromptPillClick(prompt)}
-                      className="text-left text-[11px] p-2 rounded-md bg-card hover:bg-accent border border-border text-muted-foreground hover:text-foreground transition-colors font-sans leading-snug"
+                      className="text-left text-xs p-2.5 rounded-md bg-card/80 hover:bg-accent/60 border border-border/70 text-muted-foreground hover:text-foreground transition-colors font-sans leading-snug cursor-pointer"
                     >
                       {prompt}
                     </button>
@@ -220,14 +219,14 @@ export const ConversationSidebar = ({ projectId }: ConversationSidebarProps) => 
                 <MessageContent>
                   {message.status === "processing" ? (
                     <div className="flex items-center justify-between gap-2 text-xs text-muted-foreground bg-muted/40 px-3 py-2 rounded-md border border-border">
-                      <div className="flex items-center gap-2">
-                        <LoaderIcon className="size-3.5 animate-spin text-emerald-400" />
-                        <span>AI is thinking (Auto-Fallback)...</span>
+                      <div className="flex items-center gap-2 font-mono">
+                        <LoaderIcon className="size-3.5 animate-spin text-primary" />
+                        <span>Generating response...</span>
                       </div>
                       <Button
                         size="sm"
                         variant="ghost"
-                        className="h-5 px-2 text-[10px] text-destructive hover:bg-destructive/10"
+                        className="h-5 px-2 text-[11px] text-destructive hover:bg-destructive/10"
                         onClick={handleCancel}
                         title="Click to cancel"
                       >
@@ -235,11 +234,11 @@ export const ConversationSidebar = ({ projectId }: ConversationSidebarProps) => 
                       </Button>
                     </div>
                   ) : message.status === "cancelled" ? (
-                    <span className="text-xs text-muted-foreground italic">
+                    <span className="text-xs text-muted-foreground italic font-mono">
                       Request cancelled
                     </span>
                   ) : (
-                    <MessageResponse className="text-xs leading-relaxed">
+                    <MessageResponse className="text-xs leading-relaxed font-sans">
                       {message.content}
                     </MessageResponse>
                   )}
@@ -253,7 +252,7 @@ export const ConversationSidebar = ({ projectId }: ConversationSidebarProps) => 
                           navigator.clipboard.writeText(message.content);
                           toast.success("Copied to clipboard");
                         }}
-                        label="Copy"
+                        label="Copy message"
                       >
                         <CopyIcon className="size-3" />
                       </MessageAction>
@@ -266,10 +265,10 @@ export const ConversationSidebar = ({ projectId }: ConversationSidebarProps) => 
         </Conversation>
 
         {/* Input Bar */}
-        <div className="p-2.5 border-t border-border bg-sidebar">
+        <div className="p-2.5 border-t border-border/80 bg-sidebar">
           <PromptInput
             onSubmit={handleSubmit}
-            className="rounded-lg border border-border bg-background transition-colors"
+            className="rounded-lg border border-border/80 bg-background transition-colors focus-within:border-primary/70"
           >
             <PromptInputBody>
               <PromptInputTextarea
@@ -285,15 +284,14 @@ export const ConversationSidebar = ({ projectId }: ConversationSidebarProps) => 
                 className="text-xs text-foreground placeholder:text-muted-foreground/60 min-h-[48px]"
               />
             </PromptInputBody>
-            <PromptInputFooter className="px-2 pb-1.5 pt-0">
-              <div className="flex items-center gap-1 text-[10px] text-muted-foreground font-mono" title="Groq -> Gemini -> Hugging Face -> OpenAI">
-                <span className="size-1.5 rounded-full bg-emerald-500 inline-block" />
-                <span>Auto-Fallback Active</span>
-              </div>
+            <PromptInputFooter className="px-2.5 pb-2 pt-0 flex items-center justify-between">
+              <span className="text-[11px] font-mono text-muted-foreground/70">
+                ↵ Enter to send
+              </span>
               <PromptInputSubmit
                 disabled={!input.trim() && !isProcessing}
                 status={isProcessing && !input.trim() ? "streaming" : undefined}
-                className="size-7 bg-primary hover:bg-primary/90 text-primary-foreground rounded-md"
+                className="size-7 bg-primary hover:bg-primary/90 text-primary-foreground rounded-md transition-colors"
               />
             </PromptInputFooter>
           </PromptInput>

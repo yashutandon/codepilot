@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import Image from "next/image";
-import { UserButton } from "@clerk/nextjs";
+import { UserButton } from "@/features/auth";
 import {
   Breadcrumb,
   BreadcrumbItem,
@@ -48,11 +48,10 @@ export const PlaygroundNavbar = () => {
           </BreadcrumbList>
         </Breadcrumb>
 
-        {/* Badge */}
-        <div className="hidden sm:flex items-center gap-1 px-2 py-0.5 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-[10px] text-emerald-400 font-mono">
-          <span className="size-1.5 rounded-full bg-emerald-500 inline-block animate-pulse" />
-          <span>15 Languages</span>
-        </div>
+        {/* Language count */}
+        <span className="hidden sm:inline text-[11px] text-muted-foreground font-mono bg-muted/60 px-2 py-0.5 rounded border border-border/50">
+          Polyglot &bull; 15 Languages
+        </span>
       </div>
 
       {/* Right controls */}

@@ -1,21 +1,22 @@
 import type { Metadata } from "next";
-import { IBM_Plex_Mono, Inter } from "next/font/google";
+import { Geist, JetBrains_Mono } from "next/font/google";
 import "./globals.css";
 import { Providers } from "@/components/providers";
 import { Toaster } from "sonner";
 
-
-const inter = Inter({
-  variable: "--font-inter",
+const geistSans = Geist({
+  variable: "--font-geist-sans",
   subsets: ["latin"],
+  weight: ["300", "400", "500", "600", "700"],
+  display: "swap",
 });
 
-const PlexMono = IBM_Plex_Mono({
-  variable: "--font-plex-mono",
+const jetbrainsMono = JetBrains_Mono({
+  variable: "--font-jetbrains-mono",
   subsets: ["latin"],
-  weight: ["400", "500", "600", "700"]
+  weight: ["400", "500", "600", "700"],
+  display: "swap",
 });
-
 
 export const metadata: Metadata = {
   title: "CodePilot – AI-Powered Code Editor",
@@ -31,12 +32,12 @@ export const metadata: Metadata = {
     "Next.js AI project",
     "Developer productivity tools",
   ],
-  icons:{
-    icon:"/logo.svg"
+  icons: {
+    icon: "/logo.svg",
   },
   authors: [{ name: "Yashu Tandon" }],
   creator: "Yashu Tandon",
-  metadataBase: new URL("https://codepilot-ai.vercel.app"), // change if needed
+  metadataBase: new URL("https://codepilot-ai.vercel.app"),
   openGraph: {
     title: "CodePilot AI – AI-Powered Code Editor",
     description:
@@ -45,7 +46,7 @@ export const metadata: Metadata = {
     siteName: "CodePilot AI",
     images: [
       {
-        url: "/og.png", // create later
+        url: "/og.png",
         width: 1200,
         height: 630,
         alt: "CodePilot AI – AI Code Editor",
@@ -69,17 +70,15 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-
     <html lang="en" suppressHydrationWarning>
       <body
-        className={`${inter.variable} ${PlexMono.variable} antialiased`}
+        className={`${geistSans.variable} ${jetbrainsMono.variable} font-sans antialiased`}
       >
         <Providers>
-          <Toaster/>
+          <Toaster />
           {children}
         </Providers>
       </body>
     </html>
-
   );
 }

@@ -1,6 +1,6 @@
 import { z } from "zod";
 import { NextResponse } from "next/server";
-import { auth } from "@clerk/nextjs/server";
+import { getAuth } from "@/lib/auth/server";
 import { generateTextWithFallback } from "@/lib/ai-models";
 import {
   adjectives,
@@ -20,7 +20,7 @@ const requestSchema = z.object({
 });
 
 export async function POST(request: Request) {
-  const { userId } = await auth();
+  const { userId } = await getAuth(request);
 
   if (!userId) {
     return NextResponse.json({ error: "Please sign in to create a project" }, { status: 401 });

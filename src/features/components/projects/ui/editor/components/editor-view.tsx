@@ -9,7 +9,8 @@ import { ThemeSelector } from "./theme-selector";
 import { useEditorTheme } from "../store/use-editor-theme";
 import { getEditorThemeById } from "../themes/editor-themes";
 import { useEffect, useRef, useState } from "react";
-import { AlertTriangleIcon, CheckCircle2Icon, SparklesIcon } from "lucide-react";
+import { AlertTriangleIcon, CheckCircle2Icon, CommandIcon } from "lucide-react";
+import { LanguageIcon } from "@/features/components/playground/language-icon";
 
 const DEBOUNCE_MS = 1200;
 
@@ -46,38 +47,62 @@ export const EditorView = ({ projectId }: { projectId: Id<"projects"> }) => {
   };
 
   return (
-    <div className="h-full flex flex-col bg-background select-none">
-      <div className="flex items-center justify-between border-b border-border bg-sidebar pr-2">
+    <div className="h-full flex flex-col bg-background">
+      {/* Tab bar header */}
+      <div className="flex items-center justify-between border-b border-border/70 bg-sidebar pr-2 shrink-0">
         <div className="flex-1 min-w-0">
           <TopNavigation projectId={projectId} />
         </div>
-        <ThemeSelector className="h-7 text-[11px] shrink-0 ml-2" />
+        <ThemeSelector compact className="h-7 text-[11px] shrink-0 ml-2" />
       </div>
 
-      {activeTabId && (
-        <div className="px-1 bg-background border-b border-border">
-          <FileBreadcrumbs projectId={projectId} />
-        </div>
-      )}
+      {/* Breadcrumb line */}
+      {activeTabId && <FileBreadcrumbs projectId={projectId} />}
 
+      {/* Editor Surface */}
       <div
         className="flex-1 min-h-0 relative transition-colors"
         style={{ backgroundColor: currentTheme.bgPreview }}
       >
         {!activeFile && (
-          <div className="size-full flex flex-col items-center justify-center gap-3">
-            <div className="relative p-6 rounded-lg bg-card border border-border flex flex-col items-center">
+          <div className="size-full flex flex-col items-center justify-center p-6 text-center">
+            <div className="max-w-sm flex flex-col items-center gap-3 p-8 rounded-xl bg-card/60 border border-border/80 shadow-xs">
               <Image
                 src="/logo.svg"
                 alt="CodePilot"
-                width={56}
-                height={56}
-                className="opacity-40 mb-2"
+                width={48}
+                height={48}
+                className="opacity-30 mb-1"
+                priority
               />
-              <p className="text-sm font-medium text-muted-foreground">No file open</p>
-              <p className="text-xs text-muted-foreground/70 mt-1">
-                Select a file from the explorer or press <kbd className="px-1.5 py-0.5 rounded bg-muted border text-[10px]">Ctrl+Shift+K</kbd> to search
-              </p>
+              <div className="space-y-1">
+                <p className="text-sm font-semibold text-foreground">No file selected</p>
+                <p className="text-xs text-muted-foreground leading-relaxed">
+                  Open a file from the explorer on the left or use keyboard shortcuts.
+                </p>
+              </div>
+
+              {/* Developer shortcut tips */}
+              <div className="mt-2 w-full pt-3 border-t border-border/50 text-[11px] font-mono text-muted-foreground flex flex-col gap-1.5 text-left">
+                <div className="flex items-center justify-between">
+                  <span>Search Files</span>
+                  <kbd className="px-1.5 py-0.5 rounded bg-muted border border-border/80 text-[11px]">
+                    Ctrl+Shift+K
+                  </kbd>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span>Toggle Preview</span>
+                  <kbd className="px-1.5 py-0.5 rounded bg-muted border border-border/80 text-[11px]">
+                    Alt+2
+                  </kbd>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span>Rename File</span>
+                  <kbd className="px-1.5 py-0.5 rounded bg-muted border border-border/80 text-[11px]">
+                    F2
+                  </kbd>
+                </div>
+              </div>
             </div>
           </div>
         )}
@@ -109,11 +134,11 @@ export const EditorView = ({ projectId }: { projectId: Id<"projects"> }) => {
         )}
 
         {isActiveFileBinary && (
-          <div className="size-full flex items-center justify-center">
+          <div className="size-full flex items-center justify-center p-6">
             <div className="flex flex-col items-center gap-3 max-w-md text-center p-6 rounded-lg bg-card border border-border">
               <AlertTriangleIcon className="size-8 text-amber-500/80" />
               <p className="text-sm font-medium text-foreground">Binary or Unsupported File</p>
-              <p className="text-xs text-muted-foreground">
+              <p className="text-xs text-muted-foreground leading-relaxed">
                 This file cannot be displayed in the text editor because it is either binary or encoded in an unsupported format.
               </p>
             </div>
@@ -122,9 +147,9 @@ export const EditorView = ({ projectId }: { projectId: Id<"projects"> }) => {
       </div>
 
       {/* Production IDE Bottom Status Bar */}
-      <footer className="h-6 bg-sidebar border-t border-border px-3 flex items-center justify-between text-[11px] text-muted-foreground shrink-0 font-mono">
+      <footer className="h-6.5 bg-sidebar border-t border-border/80 px-3 flex items-center justify-between text-[11px] text-muted-foreground shrink-0 font-mono select-none">
         <div className="flex items-center gap-3">
-          <div className="flex items-center gap-1.5 hover:text-foreground cursor-pointer transition-colors">
+          <div className="flex items-center gap-1.5 hover:text-foreground cursor-default transition-colors">
             <span className="inline-block size-1.5 rounded-full bg-emerald-500" />
             <span className="font-sans">Ready</span>
           </div>
@@ -132,11 +157,11 @@ export const EditorView = ({ projectId }: { projectId: Id<"projects"> }) => {
           {activeFile && (
             <>
               <span className="text-border">|</span>
-              <div className="flex items-center gap-1">
+              <div className="flex items-center gap-1 font-sans">
                 {isSaving ? (
-                  <span className="text-amber-500/90 font-sans">Saving...</span>
+                  <span className="text-amber-500/90">Saving...</span>
                 ) : (
-                  <span className="text-emerald-500/80 flex items-center gap-1 font-sans">
+                  <span className="text-emerald-500/90 flex items-center gap-1">
                     <CheckCircle2Icon className="size-3" /> Saved
                   </span>
                 )}
@@ -152,13 +177,14 @@ export const EditorView = ({ projectId }: { projectId: Id<"projects"> }) => {
               <span className="text-border">|</span>
               <span>Spaces: 2</span>
               <span className="text-border">|</span>
-              <span className="font-sans uppercase text-[10px] px-1.5 py-0.5 rounded bg-muted/60 text-muted-foreground font-semibold">
-                {getFileExtension(activeFile.name) || "TEXT"}
+              <span className="flex items-center gap-1.5 font-sans uppercase text-[11px] px-1.5 py-0.5 rounded bg-muted/70 text-muted-foreground font-semibold">
+                <LanguageIcon language={getFileExtension(activeFile.name)} className="size-3.5 shrink-0" useBrandColor />
+                <span>{getFileExtension(activeFile.name) || "TEXT"}</span>
               </span>
               <span className="text-border">|</span>
             </>
           )}
-          <ThemeSelector compact className="h-5 px-1.5 text-[10px]" />
+          <ThemeSelector compact className="h-5 px-1.5 text-[11px]" />
         </div>
       </footer>
     </div>

@@ -1,7 +1,7 @@
 import { z } from "zod";
 import { NextResponse } from "next/server";
-import { auth, clerkClient } from "@clerk/nextjs/server";
-
+import { getAuth } from "@/lib/auth/server";
+import { findUserById } from "@/lib/auth/users";
 import { convex } from "@/lib/convex-client";
 import { inngest } from "@/inngest/client";
 
@@ -21,33 +21,23 @@ function parseGitHubUrl(url: string) {
 }
 
 export async function POST(request: Request) {
-  const { userId, has } = await auth();
+  const { userId } = await getAuth(request);
 
   if (!userId) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
-
-  // const hasPro = has({ plan: "pro" });
-
-  // if (!hasPro) {
-  //   return NextResponse.json({ error: "Pro plan required" }, { status: 403 });
-  // }
 
   const body = await request.json();
   const { url } = requestSchema.parse(body);
 
   const { owner, repo } = parseGitHubUrl(url);
 
-  const client = await clerkClient();
-  const tokens = await client.users.getUserOauthAccessToken(
-    userId,
-    "github"
-  );
-  const githubToken = tokens.data[0]?.token;
+  const user = await findUserById(userId);
+  const githubToken = user?.githubToken || process.env.GITHUB_TOKEN;
 
   if (!githubToken) {
     return NextResponse.json(
-      { error: "GitHub not connected. Please reconnect your GitHub account." },
+      { error: "GitHub not connected. Please provide a GITHUB_TOKEN environment variable." },
       { status: 400 }
     );
   }
@@ -82,4 +72,4 @@ export async function POST(request: Request) {
     projectId, 
     eventId: event.ids[0]
   });
-};
+}

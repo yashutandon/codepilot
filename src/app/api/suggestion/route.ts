@@ -3,7 +3,7 @@ import { generateObjectWithFallback, getSuggestionModelCandidates } from "@/lib/
 
 
 import {z} from "zod";
-import { auth } from "@clerk/nextjs/server";
+import { getAuth } from "@/lib/auth/server";
 
 const suggestionSchema=z.object({
     suggestion:z.string().describe("the code to insert at cursor, or empty string if no completion needed")
@@ -66,7 +66,7 @@ Return ONLY the suggestion text, no explanations or metadata.
 
 export async function POST(request:Request){
     try{
-        const {userId}=await auth();
+        const {userId}=await getAuth(request);
         if(!userId){
             return NextResponse.json({error:"Unauthorized"},{status:401});
         }

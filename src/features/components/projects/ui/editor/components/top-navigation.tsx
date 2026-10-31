@@ -8,84 +8,100 @@ import { FileIcon } from "@react-symbols/icons/utils";
 import { XIcon } from "lucide-react";
 
 const Tab = ({
-    fileId,
-    isFirst,
-    projectId,
-}:{
-    fileId:Id<"files">;
-    isFirst:boolean;
-    projectId:Id<"projects">
-})=>{
-    const file=useFile(fileId);
-    const {
-        activeTabId,
-        previewTabId,
-        setActiveTab,
-        openFile,
-        closeTab
-    }=useEditor(projectId)
+  fileId,
+  isFirst,
+  projectId,
+}: {
+  fileId: Id<"files">;
+  isFirst: boolean;
+  projectId: Id<"projects">;
+}) => {
+  const file = useFile(fileId);
+  const {
+    activeTabId,
+    previewTabId,
+    setActiveTab,
+    openFile,
+    closeTab,
+  } = useEditor(projectId);
 
-    const isActive = activeTabId===fileId;
-    const isPreview=previewTabId===fileId;
-    const fileName=file?.name ?? "Loading... "
-    return (
-        <div
-        onClick={()=>setActiveTab(fileId)}
-        onDoubleClick={()=>openFile(fileId,{pinned:true})}
+  const isActive = activeTabId === fileId;
+  const isPreview = previewTabId === fileId;
+  const fileName = file?.name ?? "Loading...";
+
+  return (
+    <div
+      role="tab"
+      aria-selected={isActive}
+      onClick={() => setActiveTab(fileId)}
+      onDoubleClick={() => openFile(fileId, { pinned: true })}
+      className={cn(
+        "flex items-center gap-2 h-9 px-3 cursor-pointer text-muted-foreground group border-r border-border/60 hover:bg-muted/40 transition-colors select-none text-xs",
+        isActive
+          ? "bg-background text-foreground border-t-2 border-t-primary font-medium"
+          : "bg-sidebar/50",
+        isFirst && "border-l border-border/60"
+      )}
+    >
+      {file === undefined ? (
+        <Spinner className="size-3 text-muted-foreground" />
+      ) : (
+        <FileIcon fileName={fileName} autoAssign className="size-3.5 shrink-0" />
+      )}
+      <span
         className={cn(
-            "flex items-center gap-2 h-8.75 pl-2 pr-1.5 cursor-pointer text-muted-foreground group border-y border-x border-transparent hover:bg-accent/30",
-            isActive && "bg-background text-foreground border-x-border border-b-background -mb-px",
-            isFirst && "border-l-transparent!"
-        )}>
-            {file===undefined ? (
-                <Spinner className="text-ring"/>
-            ):(
-                <FileIcon fileName={fileName} autoAssign className="size-4"/>
-            )}
-            <span className={cn("text-sm whitespace-nowrap",
-                isPreview && "italic"
-            )}>
-                {fileName}
-            </span>
-            <button
-            onClick={(e)=>{
-                e.preventDefault();
-                e.stopPropagation();
-                closeTab(fileId);
-            }}
-            onKeyDown={(e)=>{
-               if(e.key === "Enter" || e.key === " "){
-                e.preventDefault();
-                e.stopPropagation();
-                closeTab(fileId)
-               }
-            }}
-            className={cn("p-0.5 rounded-sm hover:bg-white/10 opacity-0 group-hover:opacity-100",
-                isActive && "opacity-100"
-            )}
-            >
-                <XIcon className="size-3.5"/>
-            </button>
-        
-        </div>
-    )
-}
+          "whitespace-nowrap font-mono text-xs",
+          isPreview && "italic opacity-85"
+        )}
+      >
+        {fileName}
+      </span>
+      <button
+        type="button"
+        title="Close tab (Ctrl+W)"
+        onClick={(e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          closeTab(fileId);
+        }}
+        onKeyDown={(e) => {
+          if (e.key === "Enter" || e.key === " ") {
+            e.preventDefault();
+            e.stopPropagation();
+            closeTab(fileId);
+          }
+        }}
+        className={cn(
+          "size-4 rounded flex items-center justify-center hover:bg-muted text-muted-foreground hover:text-foreground opacity-0 group-hover:opacity-100 transition-opacity ml-1",
+          isActive && "opacity-80"
+        )}
+      >
+        <XIcon className="size-3" />
+      </button>
+    </div>
+  );
+};
 
-export const TopNavigation = ({projectId}:{projectId:Id<"projects">}) =>{
-    const {openTabs}=useEditor(projectId);
-    return (
-        <ScrollArea className="flex-1">
-            <nav className="bg-sidebar flex items-center h-8.75 border-b">
-                {openTabs.map((fileId,index)=>(
-                    <Tab
-                    key={fileId}
-                    fileId={fileId}
-                    isFirst={index===0}
-                    projectId={projectId}
-                    />
-                ))}
-            </nav>
-        <ScrollBar orientation="horizontal"/>
-        </ScrollArea>
-    )
-}
+export const TopNavigation = ({
+  projectId,
+}: {
+  projectId: Id<"projects">;
+}) => {
+  const { openTabs } = useEditor(projectId);
+
+  return (
+    <ScrollArea className="flex-1 w-full">
+      <nav className="bg-sidebar flex items-center h-9 border-b border-border/70 overflow-x-auto">
+        {openTabs.map((fileId, index) => (
+          <Tab
+            key={fileId}
+            fileId={fileId}
+            isFirst={index === 0}
+            projectId={projectId}
+          />
+        ))}
+      </nav>
+      <ScrollBar orientation="horizontal" />
+    </ScrollArea>
+  );
+};

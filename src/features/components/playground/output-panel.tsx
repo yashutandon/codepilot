@@ -113,7 +113,7 @@ export const OutputPanel = ({
             <button
               type="button"
               onClick={() => handleCopy(getOutputContent())}
-              className="flex items-center gap-1 h-6 px-2 text-[10px] text-muted-foreground hover:text-foreground rounded bg-muted/40 border border-border/40 transition-colors cursor-pointer"
+              className="flex items-center gap-1 h-6 px-2 text-[11px] text-muted-foreground hover:text-foreground rounded bg-muted/40 border border-border/40 transition-colors cursor-pointer"
             >
               {copied ? (
                 <CheckIcon className="size-3 text-emerald-500" />
@@ -136,7 +136,7 @@ export const OutputPanel = ({
                   <p className="text-xs font-medium">No output yet</p>
                   <p className="text-[11px] text-muted-foreground/70">
                     Press{" "}
-                    <kbd className="px-1.5 py-0.5 rounded bg-muted border border-border text-[10px]">
+                    <kbd className="px-1.5 py-0.5 rounded bg-muted border border-border text-[11px]">
                       Ctrl+Enter
                     </kbd>{" "}
                     to run your code
@@ -202,7 +202,7 @@ export const OutputPanel = ({
             <div className="h-full flex flex-col">
               <div className="px-3 py-2 text-[11px] text-muted-foreground bg-muted/20 border-b border-border/30">
                 Standard Input — This will be passed to your program via{" "}
-                <code className="px-1 py-0.5 bg-muted rounded text-[10px] font-mono">
+                <code className="px-1 py-0.5 bg-muted rounded text-[11px] font-mono">
                   stdin
                 </code>
               </div>

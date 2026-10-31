@@ -30,6 +30,7 @@ import { LanguageSelector } from "./language-selector";
 import { OutputPanel } from "./output-panel";
 import { usePlaygroundStore } from "./store/use-playground-store";
 import { getLanguageById } from "./constants";
+import { LanguageIcon } from "./language-icon";
 
 export const PlaygroundView = () => {
   const {
@@ -74,7 +75,7 @@ export const PlaygroundView = () => {
               "h-8 px-4 text-xs font-semibold gap-1.5 transition-all",
               isRunning
                 ? "bg-amber-500/20 text-amber-400 border border-amber-500/30"
-                : "bg-emerald-600 hover:bg-emerald-500 text-white shadow-lg shadow-emerald-500/20"
+                : "bg-emerald-600 hover:bg-emerald-500 text-white"
             )}
           >
             {isRunning ? (
@@ -91,7 +92,7 @@ export const PlaygroundView = () => {
           </Button>
 
           {/* Keyboard shortcut hint */}
-          <span className="hidden md:inline text-[10px] text-muted-foreground font-mono">
+          <span className="hidden md:inline text-[11px] text-muted-foreground font-mono">
             Ctrl+Enter
           </span>
         </div>
@@ -125,7 +126,7 @@ export const PlaygroundView = () => {
             >
               <MinusIcon className="size-3" />
             </button>
-            <span className="text-[10px] font-mono text-muted-foreground min-w-[28px] text-center">
+            <span className="text-[11px] font-mono text-muted-foreground min-w-[28px] text-center">
               {fontSize}px
             </span>
             <button
@@ -260,17 +261,20 @@ export const PlaygroundView = () => {
         <div className="flex items-center gap-3">
           {/* Language info */}
           <div className="flex items-center gap-1.5">
-            <ZapIcon className="size-3 text-emerald-400" />
-            <span className="font-sans">
-              {currentLang.name} {currentLang.wandboxVersion}
+            <LanguageIcon language={currentLang.id} className="size-3.5 shrink-0" useBrandColor />
+            <span className="font-sans font-medium text-foreground">
+              {currentLang.name}
+            </span>
+            <span className="text-muted-foreground font-mono text-[11px]">
+              {currentLang.wandboxVersion}
             </span>
           </div>
           <span className="text-border">|</span>
-          <span className="font-sans text-[10px] uppercase px-1.5 py-0.5 rounded bg-muted/60 text-muted-foreground font-semibold">
+          <span className="font-sans text-[11px] uppercase px-1.5 py-0.5 rounded bg-muted/60 text-muted-foreground font-semibold">
             {currentLang.extension.replace(".", "").toUpperCase()}
           </span>
           <span className="text-border">|</span>
-          <span className="font-sans text-[10px]">Wandbox Engine</span>
+          <span className="font-sans text-[11px]">Wandbox Engine</span>
         </div>
       </footer>
     </div>

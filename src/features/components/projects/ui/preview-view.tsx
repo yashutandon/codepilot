@@ -258,7 +258,7 @@ export const PreviewView = ({
                   <div className="flex items-center gap-2 text-foreground font-mono">
                     <TerminalSquareIcon className="size-3.5 text-muted-foreground" />
                     <span className="font-semibold text-[11px]">Interactive Terminal</span>
-                    <span className="text-[10px] text-muted-foreground">
+                    <span className="text-[11px] text-muted-foreground">
                       (WebContainer Shell)
                     </span>
                   </div>
@@ -272,7 +272,7 @@ export const PreviewView = ({
                         </span>
                       </div>
                     ) : (
-                      <div className="flex items-center gap-1.5 text-[10px] text-muted-foreground font-mono">
+                      <div className="flex items-center gap-1.5 text-[11px] text-muted-foreground font-mono">
                         <span className="size-1.5 rounded-full bg-emerald-500 inline-block" />
                         <span>Ready</span>
                       </div>

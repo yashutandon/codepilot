@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { auth } from "@clerk/nextjs/server";
+import { getAuth } from "@/lib/auth/server";
 import { Ratelimit } from "@upstash/ratelimit";
 import { Redis } from "@upstash/redis";
 import { z } from "zod/v4";
@@ -33,7 +33,7 @@ const WANDBOX_URL = "https://wandbox.org/api/compile.json";
 export async function POST(request: NextRequest) {
   try {
     // 1. Auth check
-    const { userId } = await auth();
+    const { userId } = await getAuth(request);
     if (!userId) {
       return NextResponse.json(
         { error: "Unauthorized. Please sign in to run code." },

@@ -11,7 +11,7 @@ import {
 import { Id } from "../../../../../convex/_generated/dataModel";
 import Link from "next/link";
 import Image from "next/image";
-import { UserButton } from "@clerk/nextjs";
+import { UserButton } from "@/features/auth";
 import { useProject, useRenameProject } from "../hooks/use-projects";
 import { useState } from "react";
 
@@ -24,8 +24,11 @@ import {
   CloudCheckIcon,
   GitBranchIcon,
   LoaderIcon,
-  SparklesIcon,
+  PencilIcon,
+  TerminalSquareIcon,
+  ExternalLinkIcon,
 } from "lucide-react";
+import { FaGithub } from "react-icons/fa";
 import { formatDistanceToNow } from "date-fns";
 import { Button } from "@/components/ui/button";
 import { ThemeSelector } from "./editor/components/theme-selector";
@@ -60,8 +63,8 @@ export const Navbar = ({ projectId }: { projectId: Id<"projects"> }) => {
   };
 
   return (
-    <nav className="h-10 flex justify-between items-center px-3 bg-sidebar border-b border-border/50 select-none shrink-0">
-      <div className="flex items-center gap-x-2">
+    <nav className="h-10 flex justify-between items-center px-3 bg-sidebar border-b border-border/80 select-none shrink-0 transition-colors">
+      <div className="flex items-center gap-x-2.5 min-w-0">
         <Breadcrumb>
           <BreadcrumbList className="gap-0 text-xs">
             <BreadcrumbItem>
@@ -69,11 +72,11 @@ export const Navbar = ({ projectId }: { projectId: Id<"projects"> }) => {
                 <Button
                   variant="ghost"
                   size="sm"
-                  className="h-7 px-2 hover:bg-accent/50 text-foreground font-semibold flex items-center gap-1.5"
+                  className="h-7 px-2 hover:bg-accent/60 text-foreground font-semibold flex items-center gap-1.5"
                   asChild
                 >
                   <Link href="/">
-                    <Image src="/logo.svg" alt="Logo" height={18} width={18} />
+                    <Image src="/logo.svg" alt="CodePilot" height={18} width={18} priority />
                     <span className="font-bold tracking-tight">CodePilot</span>
                   </Link>
                 </Button>
@@ -92,15 +95,16 @@ export const Navbar = ({ projectId }: { projectId: Id<"projects"> }) => {
                   onFocus={(e) => e.currentTarget.select()}
                   onBlur={handleSubmit}
                   onKeyDown={handleKeyDown}
-                  className="text-xs bg-background/80 px-2 py-0.5 rounded border border-emerald-500/50 text-foreground outline-none font-medium max-w-44"
+                  className="text-xs bg-background px-2 py-0.5 rounded border border-primary/70 text-foreground outline-none font-medium max-w-52 shadow-xs"
                 />
               ) : (
                 <BreadcrumbPage
                   onClick={handleStartRename}
-                  className="text-xs cursor-pointer hover:text-emerald-400 font-medium max-w-44 truncate px-1 py-0.5 rounded hover:bg-muted/40 transition-colors"
-                  title="Click to rename"
+                  className="text-xs group/rename cursor-pointer hover:text-foreground font-medium max-w-48 truncate px-1.5 py-0.5 rounded hover:bg-muted/60 transition-colors flex items-center gap-1"
+                  title="Click to rename workspace"
                 >
-                  {project?.name ?? "Loading..."}
+                  <span className="truncate">{project?.name ?? "Loading..."}</span>
+                  <PencilIcon className="size-2.5 opacity-0 group-hover/rename:opacity-60 transition-opacity" />
                 </BreadcrumbPage>
               )}
             </BreadcrumbItem>
@@ -108,16 +112,31 @@ export const Navbar = ({ projectId }: { projectId: Id<"projects"> }) => {
         </Breadcrumb>
 
         {/* Git Branch Badge */}
-        <div className="hidden sm:flex items-center gap-1 px-2 py-0.5 rounded-full bg-muted/60 border border-border/50 text-[10px] text-muted-foreground font-mono">
+        <div className="hidden sm:flex items-center gap-1 px-2 py-0.5 rounded-full bg-muted/60 border border-border/60 text-[11px] text-muted-foreground font-mono">
           <GitBranchIcon className="size-2.5 text-emerald-400" />
           <span>main</span>
         </div>
+
+        {/* Connected GitHub Repo Link */}
+        {project?.exportRepoUrl && (
+          <a
+            href={project.exportRepoUrl}
+            target="_blank"
+            rel="noreferrer"
+            className="hidden md:flex items-center gap-1 px-2 py-0.5 rounded bg-muted/40 hover:bg-muted border border-border/50 text-[11px] font-mono text-muted-foreground hover:text-foreground transition-colors"
+            title="Open GitHub Repository"
+          >
+            <FaGithub className="size-3" />
+            <span className="max-w-[120px] truncate">{project.exportRepoUrl.replace("https://github.com/", "")}</span>
+            <ExternalLinkIcon className="size-2.5 opacity-70" />
+          </a>
+        )}
 
         {/* Sync Status */}
         {project?.importStatus === "importing" ? (
           <Tooltip>
             <TooltipTrigger asChild>
-              <div className="flex items-center gap-1 text-[10px] text-amber-400 bg-amber-500/10 px-2 py-0.5 rounded-full border border-amber-500/20 font-mono">
+              <div className="flex items-center gap-1 text-[11px] text-amber-400 bg-amber-500/10 px-2 py-0.5 rounded-full border border-amber-500/20 font-mono">
                 <LoaderIcon className="size-2.5 animate-spin" />
                 <span>Importing...</span>
               </div>
@@ -128,9 +147,9 @@ export const Navbar = ({ projectId }: { projectId: Id<"projects"> }) => {
           project?.updateAt && (
             <Tooltip>
               <TooltipTrigger asChild>
-                <div className="flex items-center gap-1 text-[10px] text-muted-foreground hover:text-foreground cursor-default font-mono">
+                <div className="flex items-center gap-1 text-[11px] text-muted-foreground hover:text-foreground cursor-default font-mono">
                   <CloudCheckIcon className="size-3 text-emerald-500" />
-                  <span className="hidden md:inline">Saved</span>
+                  <span className="hidden lg:inline">Saved</span>
                 </div>
               </TooltipTrigger>
               <TooltipContent>
@@ -145,25 +164,22 @@ export const Navbar = ({ projectId }: { projectId: Id<"projects"> }) => {
       </div>
 
       {/* Right controls */}
-      <div className="flex items-center gap-2.5">
-        {/* Active AI model pill */}
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <div className="hidden md:flex items-center gap-1.5 px-2.5 py-1 rounded bg-muted border border-border text-[10px] font-mono text-muted-foreground cursor-help">
-              <span>Groq &bull; Auto-Fallback</span>
-            </div>
-          </TooltipTrigger>
-          <TooltipContent className="text-[11px] max-w-xs">
-            Multi-Model Fallback: Groq (Qwen 3.8 27B, GPT-OSS 120B/20B, Compound) &rarr; Gemini &rarr; Hugging Face &rarr; OpenAI
-          </TooltipContent>
-        </Tooltip>
+      <div className="flex items-center gap-2">
+        <Link
+          href="/playground"
+          className="text-xs text-muted-foreground hover:text-foreground font-medium px-2 py-1 rounded hover:bg-muted/60 transition-colors flex items-center gap-1.5"
+          title="Open Polyglot Code Playground"
+        >
+          <TerminalSquareIcon className="size-3.5 text-violet-400" />
+          <span className="hidden sm:inline">Playground</span>
+        </Link>
 
         <ThemeSelector compact className="h-7 text-[11px]" />
 
         <UserButton
           appearance={{
             elements: {
-              avatarBox: "size-7 border border-border/60",
+              avatarBox: "size-7 border border-border/80",
             },
           }}
         />
