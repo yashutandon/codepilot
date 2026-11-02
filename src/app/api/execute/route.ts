@@ -112,12 +112,12 @@ export async function POST(request: NextRequest) {
 
     // 6. Format response
     // Wandbox returns:
-    //   program_output  — stdout from the program
-    //   program_error   — stderr from the program
-    //   compiler_output — stdout from the compiler
-    //   compiler_error  — stderr from the compiler
-    //   status          — exit code (string "0" for success)
-    //   signal          — signal name if killed
+    //   program_output  - stdout from the program
+    //   program_error   - stderr from the program
+    //   compiler_output - stdout from the compiler
+    //   compiler_error  - stderr from the compiler
+    //   status          - exit code (string "0" for success)
+    //   signal          - signal name if killed
 
     const stdout = result.program_output || "";
     const stderr = result.program_error || "";
@@ -136,11 +136,11 @@ export async function POST(request: NextRequest) {
       signal: result.signal || null,
       compile: hasCompileOutput
         ? {
-            stdout: compilerStdout,
-            stderr: compilerStderr || compilerMessage,
-            code: exitCode,
-            signal: null,
-          }
+          stdout: compilerStdout,
+          stderr: compilerStderr || compilerMessage,
+          code: exitCode,
+          signal: null,
+        }
         : undefined,
       language: compiler,
       version: compiler,

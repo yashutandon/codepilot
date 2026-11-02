@@ -1,5 +1,6 @@
 import { v } from "convex/values";
 import { mutation, query } from "./_generated/server";
+import { Id } from "./_generated/dataModel";
 
 
 const validateInternalKey = (key: string) => {
@@ -318,6 +319,136 @@ export const createFolder = mutation({
         return fileId;
     }
 })
+
+export const saveFileTree = mutation({
+    args: {
+        internalKey: v.string(),
+        projectId: v.id("projects"),
+        files: v.array(
+            v.object({
+                path: v.string(),
+                content: v.string(),
+            })
+        ),
+    },
+    handler: async (ctx, args) => {
+        validateInternalKey(args.internalKey);
+
+        const existingItems = await ctx.db
+            .query("files")
+            .withIndex("by_project", (q) => q.eq("projectId", args.projectId))
+            .collect();
+
+        const cleanPath = (p: string) =>
+            p
+                .trim()
+                .replace(/^[\\/]+/, "")
+                .replace(/^(app|root|workspace)[\\/]+/i, "")
+                .replace(/^\.[\\/]+/, "")
+                .replace(/\\/g, "/")
+                .replace(/\/+/g, "/");
+
+        // Cache of normalized folder path -> folder _id
+        const folderMap = new Map<string, Id<"files"> | undefined>();
+        folderMap.set("", undefined);
+
+        // Preload existing folders into folderMap
+        for (const item of existingItems) {
+            if (item.type === "folder") {
+                const parts: string[] = [item.name];
+                let pid = item.parentId;
+                while (pid) {
+                    const p = existingItems.find((x) => x._id === pid);
+                    if (!p) break;
+                    parts.unshift(p.name);
+                    pid = p.parentId;
+                }
+                folderMap.set(parts.join("/"), item._id);
+            }
+        }
+
+        for (const file of args.files) {
+            const normalized = cleanPath(file.path);
+            if (!normalized) continue;
+
+            const segments = normalized.split("/").filter(Boolean);
+            const fileName = segments.pop()!;
+            const folderSegments = segments;
+
+            let currentPath = "";
+            let currentParentId: Id<"files"> | undefined = undefined;
+
+            for (const folderName of folderSegments) {
+                const nextPath = currentPath ? `${currentPath}/${folderName}` : folderName;
+
+                if (folderMap.has(nextPath)) {
+                    currentParentId = folderMap.get(nextPath);
+                } else {
+                    const existingFolder = await ctx.db
+                        .query("files")
+                        .withIndex("by_project_parent", (q) =>
+                            q.eq("projectId", args.projectId).eq("parentId", currentParentId)
+                        )
+                        .filter((q) => q.eq(q.field("name"), folderName))
+                        .filter((q) => q.eq(q.field("type"), "folder"))
+                        .first();
+
+                    if (existingFolder) {
+                        currentParentId = existingFolder._id;
+                        folderMap.set(nextPath, existingFolder._id);
+                    } else {
+                        const newFolderId = await ctx.db.insert("files", {
+                            projectId: args.projectId,
+                            name: folderName,
+                            type: "folder",
+                            parentId: currentParentId,
+                            updatedAt: Date.now(),
+                        });
+                        currentParentId = newFolderId;
+                        folderMap.set(nextPath, newFolderId);
+                    }
+                }
+                currentPath = nextPath;
+            }
+
+            // Upsert the file inside currentParentId
+            const existingFile = await ctx.db
+                .query("files")
+                .withIndex("by_project_parent", (q) =>
+                    q.eq("projectId", args.projectId).eq("parentId", currentParentId)
+                )
+                .filter((q) => q.eq(q.field("name"), fileName))
+                .filter((q) => q.eq(q.field("type"), "file"))
+                .first();
+
+            if (existingFile) {
+                await ctx.db.patch(existingFile._id, {
+                    content: file.content,
+                    updatedAt: Date.now(),
+                });
+            } else {
+                await ctx.db.insert("files", {
+                    projectId: args.projectId,
+                    name: fileName,
+                    content: file.content,
+                    type: "file",
+                    parentId: currentParentId,
+                    updatedAt: Date.now(),
+                });
+            }
+        }
+
+        // Clean up legacy flat files that had slashes or /app/ in their name at root
+        const legacyFlatFiles = existingItems.filter(
+            (i) => i.parentId === undefined && (i.name.includes("/") || i.name.startsWith("app/"))
+        );
+        for (const legacy of legacyFlatFiles) {
+            await ctx.db.delete(legacy._id);
+        }
+
+        return { success: true };
+    },
+});
 
 export const renameFile=mutation({
     args:{

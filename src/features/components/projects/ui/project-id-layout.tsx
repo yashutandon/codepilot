@@ -28,19 +28,19 @@ export const ProjectIdLayout = ({
           defaultSizes={[DEFAULT_MAIN_SIZE, DEFAULT_CONVERSATION_SIDEBAR_WIDTH]}
         >
 
-          {/*  MAIN CONTENT — LEFT */}
+          {/*  MAIN CONTENT - LEFT */}
           <Allotment.Pane>
             {children}
           </Allotment.Pane>
 
-          {/*  SIDEBAR — RIGHT */}
+          {/*  SIDEBAR - RIGHT */}
           <Allotment.Pane
             snap
             minSize={MIN_SIDEBAR_WIDTH}
             maxSize={MAX_SIDEBAR_WIDTH}
             preferredSize={DEFAULT_CONVERSATION_SIDEBAR_WIDTH}
           >
-           <ConversationSidebar projectId={projectId}/>
+            <ConversationSidebar projectId={projectId} />
           </Allotment.Pane>
 
         </Allotment>

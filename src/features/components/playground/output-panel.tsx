@@ -201,7 +201,7 @@ export const OutputPanel = ({
           <TabsContent value="stdin" className="h-full m-0 p-0">
             <div className="h-full flex flex-col">
               <div className="px-3 py-2 text-[11px] text-muted-foreground bg-muted/20 border-b border-border/30">
-                Standard Input — This will be passed to your program via{" "}
+                Standard Input - This will be passed to your program via{" "}
                 <code className="px-1 py-0.5 bg-muted rounded text-[11px] font-mono">
                   stdin
                 </code>

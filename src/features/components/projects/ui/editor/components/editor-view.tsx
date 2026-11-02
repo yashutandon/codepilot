@@ -1,6 +1,6 @@
 import Image from "next/image";
 import { Id } from "../../../../../../../convex/_generated/dataModel";
-import { useFile, useUpdateFile } from "../../../hooks/use-files";
+import { useFile, useFiles, useUpdateFile } from "../../../hooks/use-files";
 import { useEditor } from "../hooks/use-editor";
 import { FileBreadcrumbs } from "./file-breadcrumbs";
 import { TopNavigation } from "./top-navigation";
@@ -15,14 +15,31 @@ import { LanguageIcon } from "@/features/components/playground/language-icon";
 const DEBOUNCE_MS = 1200;
 
 export const EditorView = ({ projectId }: { projectId: Id<"projects"> }) => {
-  const { activeTabId } = useEditor(projectId);
+  const { activeTabId, openFile } = useEditor(projectId);
   const activeFile = useFile(activeTabId);
+  const allFiles = useFiles(projectId);
   const updateFile = useUpdateFile();
   const themeId = useEditorTheme((state) => state.themeId);
   const currentTheme = getEditorThemeById(themeId);
   const timeout = useRef<NodeJS.Timeout | null>(null);
   const pendingContent = useRef<{ id: Id<"files">; content: string } | null>(null);
   const [isSaving, setIsSaving] = useState(false);
+  const autoOpenedRef = useRef(false);
+
+  // Auto-open primary entry file if no tab is currently open
+  useEffect(() => {
+    if (activeTabId || !allFiles || allFiles.length === 0 || autoOpenedRef.current) return;
+    const primaryFile =
+      allFiles.find((f) => f.type === "file" && (f.name === "App.jsx" || f.name === "App.tsx" || f.name.endsWith("App.jsx") || f.name.endsWith("App.tsx"))) ||
+      allFiles.find((f) => f.type === "file" && (f.name === "main.jsx" || f.name === "main.tsx" || f.name.endsWith("main.jsx"))) ||
+      allFiles.find((f) => f.type === "file" && f.name.endsWith(".html")) ||
+      allFiles.find((f) => f.type === "file");
+
+    if (primaryFile) {
+      autoOpenedRef.current = true;
+      openFile(primaryFile._id, { pinned: false });
+    }
+  }, [activeTabId, allFiles, openFile]);
 
   const isActiveFileBinary = activeFile && activeFile.storageId;
   const isActiveFileText = activeFile && !activeFile.storageId;

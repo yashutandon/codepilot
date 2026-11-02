@@ -46,7 +46,7 @@ export const processMessage= inngest.createFunction(
                     await convex.mutation(api.system.updateMessageContent,{
                         internalKey,
                         messageId,
-                        content:"⚠️ An error occurred while processing this request. Please try sending your message again."
+                        content:"âš ï¸ An error occurred while processing this request. Please try sending your message again."
                     })
                 })
             }
@@ -113,12 +113,12 @@ export const processMessage= inngest.createFunction(
 
                         if (title) {
                             generatedTitle = title;
-                            console.log(`[Title Generator] ✅ Generated title with ${candidate.name}: "${title}"`);
+                            console.log(`[Title Generator] âœ… Generated title with ${candidate.name}: "${title}"`);
                             break;
                         }
                     }
                 } catch (titleErr: any) {
-                    console.warn(`[Title Generator] ⚠️ Candidate ${candidate.name} failed:`, titleErr?.message || titleErr);
+                    console.warn(`[Title Generator] âš ï¸ Candidate ${candidate.name} failed:`, titleErr?.message || titleErr);
                 }
             }
 
@@ -155,7 +155,20 @@ export const processMessage= inngest.createFunction(
                     prompt: historyText ? `Project Context:\n${historyText}\n\nNew Request: ${message}` : `New Request: ${message}`,
                     candidates
                 });
-                return object;
+
+                // Sanitize all file paths to remove /app/, leading slashes, etc.
+                const cleanFiles = object.files.map((f) => ({
+                    path: f.path
+                        .trim()
+                        .replace(/^[\\/]+/, "")
+                        .replace(/^(app|root|workspace)[\\/]+/i, "")
+                        .replace(/^\.[\\/]+/, "")
+                        .replace(/\\/g, "/")
+                        .replace(/\/+/g, "/"),
+                    instruction: f.instruction,
+                })).filter((f) => Boolean(f.path));
+
+                return { files: cleanFiles };
             });
             console.log(`[Architect] Planned ${architectPlan?.files?.length || 0} files to create/modify.`);
         } catch (error: any) {
@@ -164,7 +177,7 @@ export const processMessage= inngest.createFunction(
                 await convex.mutation(api.system.updateMessageContent,{
                     internalKey,
                     messageId,
-                    content:`⚠️ The AI Architect failed to generate a project plan. Error: ${error.message || String(error)}`
+                    content:`âš ï¸ The AI Architect failed to generate a project plan. Error: ${error.message || String(error)}`
                 });
             });
             return { success: false, messageId };
@@ -224,53 +237,82 @@ Remember: Output ONLY the raw code for this file. No markdown formatting (\`\`\`
                 await convex.mutation(api.system.updateMessageContent,{
                     internalKey,
                     messageId,
-                    content:`⚠️ A Coder agent failed to generate a file. Error: ${error.message || String(error)}`
+                    content:`âš ï¸ A Coder agent failed to generate a file. Error: ${error.message || String(error)}`
                 });
             });
             return { success: false, messageId };
         }
 
+        // Ensure essential React boilerplate if it's a React project
+        const hasReactApp = generatedFiles.some(f => f.path.includes(".jsx") || f.path.includes(".tsx"));
+        if (hasReactApp) {
+            const hasPkg = generatedFiles.some(f => f.path === "package.json");
+            if (!hasPkg) {
+                generatedFiles.push({
+                    path: "package.json",
+                    content: JSON.stringify({
+                        name: "codepilot-app",
+                        private: true,
+                        version: "0.1.0",
+                        type: "module",
+                        scripts: { dev: "vite", start: "vite", build: "vite build" },
+                        dependencies: {
+                            react: "^18.3.1",
+                            "react-dom": "^18.3.1",
+                            "lucide-react": "^0.454.0",
+                            clsx: "^2.1.1",
+                            "tailwind-merge": "^2.5.4",
+                        },
+                        devDependencies: {
+                            "@vitejs/plugin-react": "^4.3.3",
+                            vite: "^5.4.10",
+                            tailwindcss: "^3.4.14",
+                            postcss: "^8.4.47",
+                            autoprefixer: "^10.4.20",
+                        },
+                    }, null, 2),
+                });
+            }
+
+            const hasVite = generatedFiles.some(f => f.path === "vite.config.js" || f.path === "vite.config.ts");
+            if (!hasVite) {
+                generatedFiles.push({
+                    path: "vite.config.js",
+                    content: "import { defineConfig } from 'vite';\nimport react from '@vitejs/plugin-react';\n\nexport default defineConfig({\n  plugins: [react()],\n});\n",
+                });
+            }
+
+            const hasIndexHtml = generatedFiles.some(f => f.path === "index.html");
+            if (!hasIndexHtml) {
+                generatedFiles.push({
+                    path: "index.html",
+                    content: '<!DOCTYPE html>\n<html lang="en">\n  <head>\n    <meta charset="UTF-8" />\n    <meta name="viewport" content="width=device-width, initial-scale=1.0" />\n    <title>CodePilot App</title>\n  </head>\n  <body class="bg-slate-950 text-slate-100 min-h-screen">\n    <div id="root"></div>\n    <script type="module" src="/src/main.jsx"></script>\n  </body>\n</html>\n',
+                });
+            }
+        }
+
         // ==========================================
-        // Phase 3: Commit Phase
+        // Phase 3: Commit Phase (Hierarchical Folders & Files)
         // ==========================================
         await step.run("commit-phase", async () => {
-            // Check if files already exist to update them instead of inserting new
-            const existingProjectFiles = await convex.query(api.system.getProjectFiles, {
+            await convex.mutation(api.system.saveFileTree, {
                 internalKey,
                 projectId,
+                files: generatedFiles,
             });
-
-            for (const file of generatedFiles) {
-                const existingFile = existingProjectFiles?.find(f => f.name === file.path);
-                
-                if (existingFile) {
-                    await convex.mutation(api.system.updateFile, {
-                        internalKey,
-                        fileId: existingFile._id,
-                        content: file.content
-                    });
-                } else {
-                    await convex.mutation(api.system.createFile, {
-                        internalKey,
-                        projectId,
-                        name: file.path,
-                        content: file.content,
-                    });
-                }
-            }
         });
 
-        await step.run("update-assitant-message",async () => {
-            const filesList = generatedFiles.map(f => `- ` + f.path).join("\n");
-            await convex.mutation(api.system.updateMessageContent,{
+        await step.run("update-assitant-message", async () => {
+            const filesList = generatedFiles.map(f => `- \`${f.path}\``).join("\n");
+            await convex.mutation(api.system.updateMessageContent, {
                 internalKey,
                 messageId,
-                content: `I have generated your project using a parallel multi-agent architecture!\n\n**Files Generated:**\n${filesList}\n\nLet me know if you need anything else.`
+                content: `### 🚀 Project Generated Successfully!\n\nI have generated your project with a complete folder structure and full component implementation:\n\n**📁 Files Created:**\n${filesList}\n\n**▶️ How to Run:**\nClick the **Preview** tab (or press **Alt+2**) in the top navigation bar to test your live app directly in the browser WebContainer!`
             });
         });
 
         return {
-            success:true,
+            success: true,
             messageId
         };
     }

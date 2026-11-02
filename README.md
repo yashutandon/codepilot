@@ -1,6 +1,6 @@
 # 🚀 CodePilot
 
-**CodePilot** is a **browser-based, AI-powered IDE** designed to deliver a modern, intelligent coding experience directly in the browser — with real-time collaboration, AI assistance, and in-browser code execution.
+**CodePilot** is a **browser-based, AI-powered IDE** designed to deliver a modern, intelligent coding experience directly in the browser - with real-time collaboration, AI assistance, and in-browser code execution.
 
 🔗 **Live Demo:** https://codepilot.yashutandon.in  
 

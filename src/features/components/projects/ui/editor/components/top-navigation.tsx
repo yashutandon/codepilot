@@ -27,7 +27,9 @@ const Tab = ({
 
   const isActive = activeTabId === fileId;
   const isPreview = previewTabId === fileId;
-  const fileName = file?.name ?? "Loading...";
+  const displayName = file?.name
+    ? file.name.replace(/^\/?(app|root|workspace)\//i, "").split("/").pop() || file.name
+    : "Loading...";
 
   return (
     <div
@@ -46,7 +48,7 @@ const Tab = ({
       {file === undefined ? (
         <Spinner className="size-3 text-muted-foreground" />
       ) : (
-        <FileIcon fileName={fileName} autoAssign className="size-3.5 shrink-0" />
+        <FileIcon fileName={displayName} autoAssign className="size-3.5 shrink-0" />
       )}
       <span
         className={cn(
@@ -54,7 +56,7 @@ const Tab = ({
           isPreview && "italic opacity-85"
         )}
       >
-        {fileName}
+        {displayName}
       </span>
       <button
         type="button"

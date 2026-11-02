@@ -64,7 +64,15 @@ export const useWebContainer = ({
   const files = useFiles(projectId);
 
   const hasPackageJson = useMemo(() => {
-    return Boolean(files?.some((f) => f.name === "package.json"));
+    return Boolean(
+      files?.some((f) => {
+        const clean = f.name
+          .trim()
+          .replace(/^[\\/]+/, "")
+          .replace(/^(app|root|workspace)[\\/]+/i, "");
+        return clean === "package.json" || clean.endsWith("/package.json");
+      })
+    );
   }, [files]);
 
   const hasHtmlFile = useMemo(() => {
@@ -76,7 +84,13 @@ export const useWebContainer = ({
   const devCommand = useMemo(() => {
     if (settings?.devCommand) return settings.devCommand;
     if (!files) return "npm run dev";
-    const pkg = files.find((f) => f.name === "package.json");
+    const pkg = files.find((f) => {
+      const clean = f.name
+        .trim()
+        .replace(/^[\\/]+/, "")
+        .replace(/^(app|root|workspace)[\\/]+/i, "");
+      return clean === "package.json" || clean.endsWith("/package.json");
+    });
     if (pkg?.content) {
       try {
         const parsed = JSON.parse(pkg.content);
@@ -204,10 +218,10 @@ export const useWebContainer = ({
         // If project has NO package.json (e.g. pure HTML/CSS/JS project)
         if (!hasPackageJson) {
           append(
-            "✓ WebContainer initialized & files mounted.\r\n" +
+            "âœ“ WebContainer initialized & files mounted.\r\n" +
               (hasHtmlFile
-                ? "💡 HTML project detected. Switch to 'HTML Preview' tab for live preview, or run commands below.\r\n"
-                : "💡 No package.json found. You can run commands below (e.g. 'npm init -y').\r\n")
+                ? "ðŸ’¡ HTML project detected. Switch to 'HTML Preview' tab for live preview, or run commands below.\r\n"
+                : "ðŸ’¡ No package.json found. You can run commands below (e.g. 'npm init -y').\r\n")
           );
           setStatus("running");
           return;

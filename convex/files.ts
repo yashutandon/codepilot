@@ -322,3 +322,116 @@ export const updateFile = mutation({
         });
     }
 });
+
+export const repairProjectHierarchy = mutation({
+    args: {
+        projectId: v.id("projects"),
+    },
+    handler: async (ctx, args) => {
+        const identity = await verifyAuth(ctx);
+        const project = await ctx.db.get("projects", args.projectId);
+        if (!project) throw new Error("Project not found");
+        if (!isAuthorized(project, identity.subject)) {
+            throw new Error("Unauthorized to access this project");
+        }
+
+        const items = await ctx.db
+            .query("files")
+            .withIndex("by_project", (q) => q.eq("projectId", args.projectId))
+            .collect();
+
+        const flatFilesToRepair = items.filter(
+            (i) => i.parentId === undefined && (i.name.includes("/") || i.name.startsWith("app/"))
+        );
+
+        if (flatFilesToRepair.length === 0) {
+            return { repaired: 0 };
+        }
+
+        const cleanPath = (p: string) =>
+            p
+                .trim()
+                .replace(/^[\\/]+/, "")
+                .replace(/^(app|root|workspace)[\\/]+/i, "")
+                .replace(/^\.[\\/]+/, "")
+                .replace(/\\/g, "/")
+                .replace(/\/+/g, "/");
+
+        const folderMap = new Map<string, Id<"files"> | undefined>();
+        folderMap.set("", undefined);
+
+        for (const item of items) {
+            if (item.type === "folder") {
+                const parts: string[] = [item.name];
+                let pid = item.parentId;
+                while (pid) {
+                    const p = items.find((x) => x._id === pid);
+                    if (!p) break;
+                    parts.unshift(p.name);
+                    pid = p.parentId;
+                }
+                folderMap.set(parts.join("/"), item._id);
+            }
+        }
+
+        let repairedCount = 0;
+
+        for (const file of flatFilesToRepair) {
+            if (file.type !== "file") continue;
+
+            const normalized = cleanPath(file.name);
+            if (!normalized) continue;
+
+            const segments = normalized.split("/").filter(Boolean);
+            const fileName = segments.pop()!;
+            const folderSegments = segments;
+
+            let currentPath = "";
+            let currentParentId: Id<"files"> | undefined = undefined;
+
+            for (const folderName of folderSegments) {
+                const nextPath = currentPath ? `${currentPath}/${folderName}` : folderName;
+
+                if (folderMap.has(nextPath)) {
+                    currentParentId = folderMap.get(nextPath);
+                } else {
+                    const existing = await ctx.db
+                        .query("files")
+                        .withIndex("by_project_parent", (q) =>
+                            q.eq("projectId", args.projectId).eq("parentId", currentParentId)
+                        )
+                        .filter((q) => q.eq(q.field("name"), folderName))
+                        .filter((q) => q.eq(q.field("type"), "folder"))
+                        .first();
+
+                    if (existing) {
+                        currentParentId = existing._id;
+                        folderMap.set(nextPath, existing._id);
+                    } else {
+                        const newFolderId = await ctx.db.insert("files", {
+                            projectId: args.projectId,
+                            name: folderName,
+                            type: "folder",
+                            parentId: currentParentId,
+                            updatedAt: Date.now(),
+                        });
+                        currentParentId = newFolderId;
+                        folderMap.set(nextPath, newFolderId);
+                    }
+                }
+                currentPath = nextPath;
+            }
+
+            // Move the file into currentParentId with clean fileName
+            await ctx.db.patch(file._id, {
+                name: fileName,
+                parentId: currentParentId,
+                updatedAt: Date.now(),
+            });
+
+            repairedCount++;
+        }
+
+        return { repaired: repairedCount };
+    },
+});

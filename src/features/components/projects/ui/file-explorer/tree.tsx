@@ -71,7 +71,9 @@ export const Tree = ({
         setCreating(type)
     }
     if (item.type === "file") {
-        const fileName = item.name;
+        const rawName = item.name;
+        const fileName = rawName.replace(/^\/?(app|root|workspace)\//i, "");
+        const iconFileName = fileName.split("/").pop() || fileName;
         const isActive=activeTabId===item._id;
 
 
@@ -99,12 +101,12 @@ export const Tree = ({
                     deleteFile({ id: item._id })
                 }}
             >
-                <FileIcon fileName={fileName} autoAssign className="size-4" />
+                <FileIcon fileName={iconFileName} autoAssign className="size-4" />
                 <span className="truncate text-sm">{fileName}</span>
             </TreeItemWrapper>
         )
     }
-    const folderName = item.name;
+    const folderName = item.name.replace(/^\/?(app|root|workspace)\//i, "");
     const folderCont = (
         <>
             <div className="flex items-center gap-0.5">

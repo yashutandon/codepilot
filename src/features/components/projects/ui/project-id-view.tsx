@@ -9,6 +9,7 @@ import { EditorView } from "./editor/components/editor-view";
 import { PreviewView } from "./preview-view";
 import { ExportPopover } from "./export-popup";
 import { Code2Icon, PlayIcon } from "lucide-react";
+import { useFiles } from "../hooks/use-files";
 
 const MIN_SIDEBAR_WIDTH = 200;
 const MAX_SIDEBAR_WIDTH = 800;
@@ -17,6 +18,7 @@ const DEFAULT_MAIN_SIZE = 1000;
 
 export const ProjectIdView = ({ projectId }: { projectId: Id<"projects"> }) => {
   const [activeView, setActiveView] = useState<"editor" | "preview">("editor");
+  const files = useFiles(projectId);
 
   // Keyboard shortcut: Alt+1 for Code, Alt+2 for Preview
   useEffect(() => {
