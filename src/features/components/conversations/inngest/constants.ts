@@ -53,6 +53,15 @@ If building a Node app, your plan MUST include:
 - index.js (the main logic)
 </mandatory_node_boilerplate>
 
+<latest_version_standards>
+CRITICAL RULES FOR MODERN DEVELOPMENT:
+- Always use the LATEST modern versions and syntax.
+- React: React 18/19 standards. Modern functional components with hooks (useState, useEffect, useMemo, useRef). Never use deprecated class components or outdated APIs.
+- Icons: Always import from 'lucide-react' with correct PascalCase names (e.g. PlayIcon, CheckIcon, Trash2Icon).
+- Styling: Modern Tailwind CSS utilities with sleek dark-mode-first aesthetic.
+- WebContainer: Ensure all packages in package.json are pure JavaScript/TypeScript without native C/C++ node-gyp bindings.
+</latest_version_standards>
+
 <instruction_guidelines>
 For each file in your plan, write a 'coderInstruction'. This instruction will be passed to a specialized Coder Agent whose ONLY job is to write that specific file.
 - The instruction must be highly detailed.
@@ -75,6 +84,7 @@ Your ONLY job is to write the complete, final, production-ready code for ONE spe
 4. Ensure all imports match the packages specified in the architect's plan.
    Use standard relative imports (e.g. import Header from './components/Header'; NEVER import from '/app/...').
 5. If writing a React component, ensure it is fully styled (prefer Tailwind classes if it's a Tailwind project) and handles edge cases beautifully.
+6. LATEST API RULES: Always use the latest, modern React 18/19 syntax with hooks. If documentation from Firecrawl is provided in your prompt, strictly follow its modern API signatures and best practices. Never use deprecated methods or obsolete libraries.
 </strict_rules>
 `;
 

@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { Terminal } from "@xterm/xterm";
 import { FitAddon } from "@xterm/addon-fit";
-import { PlayIcon, SquareIcon, Trash2Icon, CornerDownLeftIcon } from "lucide-react";
+import { PlayIcon, SquareIcon, Trash2Icon, CornerDownLeftIcon, CopyIcon, CheckIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 import "@xterm/xterm/css/xterm.css";
@@ -32,6 +32,27 @@ export const PreviewTerminal = ({
   const inputBufferRef = useRef("");
 
   const [commandInput, setCommandInput] = useState("");
+  const [copied, setCopied] = useState(false);
+
+  const handleCopyOutput = async () => {
+    try {
+      let textToCopy = terminalRef.current?.getSelection() || "";
+      if (!textToCopy) {
+        textToCopy = output || "";
+      }
+      const cleanText = textToCopy.replace(
+        /[\u001b\u009b][[()#;?]*(?:[0-9]{1,4}(?:;[0-9]{0,4})*)?[0-9A-ORZcf-nqry=><]/g,
+        ""
+      );
+      if (cleanText.trim()) {
+        await navigator.clipboard.writeText(cleanText);
+        setCopied(true);
+        setTimeout(() => setCopied(false), 2000);
+      }
+    } catch (err) {
+      console.warn("Failed to copy terminal logs:", err);
+    }
+  };
 
   // Initialize terminal
   useEffect(() => {
@@ -58,6 +79,20 @@ export const PreviewTerminal = ({
     terminalRef.current = terminal;
     fitAddonRef.current = fitAddon;
 
+    // Allow native copy on Ctrl+C / Cmd+C when text is selected in xterm
+    terminal.attachCustomKeyEventHandler((event: KeyboardEvent) => {
+      if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === "c") {
+        if (terminal.hasSelection()) {
+          const selection = terminal.getSelection();
+          if (selection) {
+            navigator.clipboard.writeText(selection).catch(() => {});
+          }
+          return false; // Prevent xterm from sending \u0003 SIGINT
+        }
+      }
+      return true;
+    });
+
     // Interactive xterm input handler
     terminal.onData((data) => {
       // Enter key
@@ -76,8 +111,15 @@ export const PreviewTerminal = ({
           terminal.write("\b \b");
         }
       }
-      // Ctrl+C (Interrupt)
+      // Ctrl+C (Copy selection if exists, otherwise Interrupt/SIGINT)
       else if (data === "\u0003") {
+        if (terminal.hasSelection()) {
+          const selection = terminal.getSelection();
+          if (selection) {
+            navigator.clipboard.writeText(selection).catch(() => {});
+            return;
+          }
+        }
         inputBufferRef.current = "";
         terminal.write("^C\r\n");
         if (onKillCommand) {
@@ -208,6 +250,26 @@ export const PreviewTerminal = ({
                 Stop
               </Button>
             )}
+            <Button
+              type="button"
+              size="sm"
+              variant="ghost"
+              className="h-5 px-1.5 text-[11px] text-muted-foreground hover:text-foreground cursor-pointer flex items-center gap-1"
+              onClick={handleCopyOutput}
+              title="Copy terminal logs or selected error text"
+            >
+              {copied ? (
+                <>
+                  <CheckIcon className="size-2.5 text-emerald-400" />
+                  <span className="text-emerald-400 text-[10px]">Copied</span>
+                </>
+              ) : (
+                <>
+                  <CopyIcon className="size-2.5" />
+                  <span className="text-[10px]">Copy Logs</span>
+                </>
+              )}
+            </Button>
             {onClearTerminal && (
               <Button
                 type="button"

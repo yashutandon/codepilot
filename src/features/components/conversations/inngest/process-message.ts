@@ -4,6 +4,7 @@ import { NonRetriableError } from "inngest";
 import { convex } from "@/lib/convex-client";
 import { api } from "../../../../../convex/_generated/api";
 import { ARCHITECT_SYSTEM_PROMPT, CODER_SYSTEM_PROMPT, TITLE_GENERATOR_SYSTEM_PROMPT } from "./constants";
+import { fetchUpdatedDocumentation } from "@/lib/firecrawl";
 import { DEFAULT_CONVERSATION_TITLE } from "../../../../../convex/constants";
 import { createAgent } from "@inngest/agent-kit";
 import {
@@ -143,16 +144,37 @@ export const processMessage= inngest.createFunction(
         }
 
         // ==========================================
+        // Phase 0: Live Docs & Version Context via Firecrawl
+        // ==========================================
+        let liveDocumentation = "";
+        try {
+            liveDocumentation = await step.run("fetch-documentation-firecrawl", async () => {
+                return await fetchUpdatedDocumentation(message);
+            });
+            if (liveDocumentation) {
+                console.log(`[Firecrawl] Injected live documentation (${liveDocumentation.length} chars).`);
+            }
+        } catch (docErr) {
+            console.warn("[Firecrawl] Could not fetch live documentation:", docErr);
+        }
+
+        // ==========================================
         // Phase 1: Architect (Planning)
         // ==========================================
         let architectPlan: { files: { path: string, instruction: string }[] } | null = null;
         try {
             architectPlan = await step.run("architect-phase", async () => {
                 const candidates = getCodingModelCandidates();
+                const architectPrompt = [
+                    historyText ? `Project Context:\n${historyText}` : "",
+                    liveDocumentation ? `\n${liveDocumentation}\n` : "",
+                    `New Request: ${message}`
+                ].filter(Boolean).join("\n\n");
+
                 const { object } = await generateObjectWithFallback({
                     schema: architectSchema,
                     system: ARCHITECT_SYSTEM_PROMPT,
-                    prompt: historyText ? `Project Context:\n${historyText}\n\nNew Request: ${message}` : `New Request: ${message}`,
+                    prompt: architectPrompt,
                     candidates
                 });
 
@@ -198,6 +220,7 @@ export const processMessage= inngest.createFunction(
 Architect Plan Overview (All files in project):
 ${planOverview}
 
+${liveDocumentation ? `${liveDocumentation}\n` : ""}
 Your Assignment:
 File to write: ${file.path}
 Instructions: ${file.instruction}
