@@ -199,7 +199,7 @@ export const PreviewTerminal = ({
       />
 
       {/* Interactive Command Input Bar */}
-      <div className="border-t border-border/40 bg-muted/20 px-2 py-1.5 flex flex-col gap-1.5 shrink-0">
+      <div className="border-t border-border bg-[#18181b] px-2 py-1.5 flex flex-col gap-1.5 shrink-0">
         {/* Presets row */}
         <div className="flex items-center justify-between gap-1 text-[11px]">
           <div className="flex items-center gap-1 overflow-x-auto no-scrollbar">
@@ -209,28 +209,28 @@ export const PreviewTerminal = ({
             <button
               type="button"
               onClick={() => handleQuickCommand("npm run dev")}
-              className="px-1.5 py-0.5 rounded bg-background border border-border/60 hover:bg-muted text-foreground text-[11px] font-mono transition-colors"
+              className="px-1.5 py-0.5 rounded bg-[#27272a] border border-border hover:bg-[#3f3f46] text-foreground text-[11px] font-mono transition-colors"
             >
               npm run dev
             </button>
             <button
               type="button"
               onClick={() => handleQuickCommand("npm install")}
-              className="px-1.5 py-0.5 rounded bg-background border border-border/60 hover:bg-muted text-foreground text-[11px] font-mono transition-colors"
+              className="px-1.5 py-0.5 rounded bg-[#27272a] border border-border hover:bg-[#3f3f46] text-foreground text-[11px] font-mono transition-colors"
             >
               npm install
             </button>
             <button
               type="button"
               onClick={() => handleQuickCommand("ls -la")}
-              className="px-1.5 py-0.5 rounded bg-background border border-border/60 hover:bg-muted text-foreground text-[11px] font-mono transition-colors"
+              className="px-1.5 py-0.5 rounded bg-[#27272a] border border-border hover:bg-[#3f3f46] text-foreground text-[11px] font-mono transition-colors"
             >
               ls
             </button>
             <button
               type="button"
               onClick={() => handleQuickCommand("node --version")}
-              className="px-1.5 py-0.5 rounded bg-background border border-border/60 hover:bg-muted text-foreground text-[11px] font-mono transition-colors"
+              className="px-1.5 py-0.5 rounded bg-[#27272a] border border-border hover:bg-[#3f3f46] text-foreground text-[11px] font-mono transition-colors"
             >
               node -v
             </button>

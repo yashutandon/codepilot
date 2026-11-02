@@ -310,7 +310,7 @@ export function AuthDialog() {
         <div className="p-5 space-y-4">
           {/* Error Banner */}
           {errorMessage && (
-            <div className="p-3 rounded-lg bg-rose-500/10 border border-rose-500/30 text-rose-300 text-xs flex items-start gap-2">
+            <div className="p-3 rounded-lg bg-[#2b1016] border border-rose-600 text-rose-200 text-xs flex items-start gap-2">
               <AlertCircleIcon className="size-4 shrink-0 mt-0.5 text-rose-400" />
               <span className="leading-relaxed">{errorMessage}</span>
             </div>
@@ -318,14 +318,14 @@ export function AuthDialog() {
 
           {/* Google OAuth Configuration Guide Banner */}
           {showGoogleSetupGuide && (
-            <div className="p-3.5 rounded-lg bg-[#161b22] border border-amber-500/40 text-xs space-y-2.5">
+            <div className="p-3.5 rounded-lg bg-[#1c1917] border border-amber-600 text-xs space-y-2.5">
               <div className="flex items-center gap-2 text-amber-300 font-medium">
                 <KeyRoundIcon className="size-4 text-amber-400 shrink-0" />
                 <span>Google OAuth Credentials Setup</span>
               </div>
-              <p className="text-[11px] text-[#8b949e] leading-relaxed">
+              <p className="text-[11px] text-[#9ca3af] leading-relaxed">
                 Add your Google Cloud OAuth Client credentials to{" "}
-                <code className="text-amber-200/90 font-mono bg-[#0d1117] px-1 py-0.5 rounded border border-[#30363d]">
+                <code className="text-amber-200 font-mono bg-[#0d1117] px-1 py-0.5 rounded border border-[#30363d]">
                   .env.local
                 </code>{" "}
                 (locally) or <strong className="text-white">Vercel Environment Variables</strong> (in production):

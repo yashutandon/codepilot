@@ -112,7 +112,7 @@ export const Navbar = ({ projectId }: { projectId: Id<"projects"> }) => {
         </Breadcrumb>
 
         {/* Git Branch Badge */}
-        <div className="hidden sm:flex items-center gap-1 px-2 py-0.5 rounded-full bg-muted/60 border border-border/60 text-[11px] text-muted-foreground font-mono">
+        <div className="hidden sm:flex items-center gap-1 px-2 py-0.5 rounded-full bg-[#27272a] border border-border text-[11px] text-muted-foreground font-mono">
           <GitBranchIcon className="size-2.5 text-emerald-400" />
           <span>main</span>
         </div>

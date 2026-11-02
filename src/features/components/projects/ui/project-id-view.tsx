@@ -39,8 +39,8 @@ export const ProjectIdView = ({ projectId }: { projectId: Id<"projects"> }) => {
   return (
     <div className="h-full flex flex-col bg-background">
       {/* View Switcher Sub-nav */}
-      <nav className="h-9 flex items-center justify-between px-2.5 bg-sidebar border-b border-border/70 shrink-0">
-        <div className="flex items-center gap-1 p-0.5 rounded-md bg-muted/40 border border-border/50">
+      <nav className="h-9 flex items-center justify-between px-2.5 bg-sidebar border-b border-border shrink-0">
+        <div className="flex items-center gap-1 p-0.5 rounded-md bg-[#18181b] border border-border">
           <button
             type="button"
             onClick={() => setActiveView("editor")}
@@ -48,8 +48,8 @@ export const ProjectIdView = ({ projectId }: { projectId: Id<"projects"> }) => {
             className={cn(
               "flex items-center gap-1.5 px-3 py-1 rounded text-xs font-medium transition-all cursor-pointer",
               activeView === "editor"
-                ? "bg-background text-foreground shadow-xs border border-border/40 font-semibold"
-                : "text-muted-foreground hover:text-foreground"
+                ? "bg-background text-foreground shadow-xs border border-border font-semibold"
+                : "text-muted-foreground hover:text-foreground hover:bg-[#27272a]"
             )}
           >
             <Code2Icon className="size-3.5 text-blue-400" />
@@ -63,11 +63,11 @@ export const ProjectIdView = ({ projectId }: { projectId: Id<"projects"> }) => {
             className={cn(
               "flex items-center gap-1.5 px-3 py-1 rounded text-xs font-medium transition-all cursor-pointer",
               activeView === "preview"
-                ? "bg-background text-foreground shadow-xs border border-border/40 font-semibold"
-                : "text-muted-foreground hover:text-foreground"
+                ? "bg-background text-foreground shadow-xs border border-border font-semibold"
+                : "text-muted-foreground hover:text-foreground hover:bg-[#27272a]"
             )}
           >
-            <PlayIcon className="size-3.5 text-emerald-400 fill-emerald-400/20" />
+            <PlayIcon className="size-3.5 text-emerald-400 fill-emerald-400" />
             <span>Preview</span>
           </button>
         </div>
