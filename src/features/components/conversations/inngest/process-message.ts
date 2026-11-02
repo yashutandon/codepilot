@@ -312,6 +312,30 @@ Remember: Output ONLY the raw code for this file. No markdown formatting (\`\`\`
                     content: '<!DOCTYPE html>\n<html lang="en">\n  <head>\n    <meta charset="UTF-8" />\n    <meta name="viewport" content="width=device-width, initial-scale=1.0" />\n    <title>CodePilot App</title>\n  </head>\n  <body class="bg-slate-950 text-slate-100 min-h-screen">\n    <div id="root"></div>\n    <script type="module" src="/src/main.jsx"></script>\n  </body>\n</html>\n',
                 });
             }
+
+            // Guarantee valid ES module PostCSS configuration to prevent '[SyntaxError] Unexpected token'
+            const validPostcss = "export default {\n  plugins: {\n    tailwindcss: {},\n    autoprefixer: {},\n  },\n};\n";
+            const postcssFile = generatedFiles.find(f => f.path === "postcss.config.js" || f.path === "postcss.config.cjs" || f.path === "postcss.config.mjs");
+            if (!postcssFile) {
+                generatedFiles.push({
+                    path: "postcss.config.js",
+                    content: validPostcss,
+                });
+            } else if (!postcssFile.content.includes("export default") && !postcssFile.content.includes("module.exports")) {
+                postcssFile.content = validPostcss;
+            }
+
+            // Guarantee valid Tailwind configuration
+            const validTailwind = "/** @type {import('tailwindcss').Config} */\nexport default {\n  content: [\n    './index.html',\n    './src/**/*.{js,ts,jsx,tsx}',\n  ],\n  theme: {\n    extend: {},\n  },\n  plugins: [],\n};\n";
+            const tailwindFile = generatedFiles.find(f => f.path === "tailwind.config.js" || f.path === "tailwind.config.cjs" || f.path === "tailwind.config.mjs");
+            if (!tailwindFile) {
+                generatedFiles.push({
+                    path: "tailwind.config.js",
+                    content: validTailwind,
+                });
+            } else if (!tailwindFile.content.includes("export default") && !tailwindFile.content.includes("module.exports")) {
+                tailwindFile.content = validTailwind;
+            }
         }
 
         // ==========================================

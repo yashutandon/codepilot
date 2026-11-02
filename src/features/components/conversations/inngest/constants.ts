@@ -31,8 +31,8 @@ BASED ON YOUR SELECTION, YOU MUST OUTPUT THE REQUIRED BOILERPLATE FILES.
 If building a React app, your plan MUST include at minimum these files:
 - package.json (must include vite, @vitejs/plugin-react, react, react-dom, tailwindcss, postcss, autoprefixer, lucide-react)
 - vite.config.js (react plugin config)
-- tailwind.config.js (content: ["./index.html", "./src/**/*.{js,ts,jsx,tsx}"])
-- postcss.config.js (plugins: { tailwindcss: {}, autoprefixer: {} })
+- tailwind.config.js (Must be valid ES module: export default { content: ["./index.html", "./src/**/*.{js,ts,jsx,tsx}"], theme: { extend: {} }, plugins: [] })
+- postcss.config.js (Must be valid ES module: export default { plugins: { tailwindcss: {}, autoprefixer: {} } })
 - index.html (with <div id="root"></div> and <script type="module" src="/src/main.jsx"></script>)
 - src/main.jsx (React render logic importing App and index.css)
 - src/index.css (Tailwind directives: @tailwind base; @tailwind components; @tailwind utilities;)

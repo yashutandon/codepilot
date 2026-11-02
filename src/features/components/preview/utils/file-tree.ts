@@ -71,6 +71,38 @@ export const buildTreeFile = (files: FileDoc[]): FileSystemTree => {
                             }
                         } catch {}
                     }
+
+                    if (
+                        cleanFileName === "postcss.config.js" ||
+                        cleanFileName === "postcss.config.cjs" ||
+                        cleanFileName === "postcss.config.mjs"
+                    ) {
+                        const trimmed = contents.trim();
+                        // Fix invalid PostCSS config (e.g. raw object literal 'plugins: {...}' or 'export { plugins: ... }')
+                        if (!trimmed.includes("export default") && !trimmed.includes("module.exports")) {
+                            contents = "export default {\n  plugins: {\n    tailwindcss: {},\n    autoprefixer: {},\n  },\n};\n";
+                        } else if (trimmed.startsWith("export {") && !trimmed.includes("export default")) {
+                            contents = "export default {\n  plugins: {\n    tailwindcss: {},\n    autoprefixer: {},\n  },\n};\n";
+                        }
+                    }
+
+                    if (
+                        cleanFileName === "tailwind.config.js" ||
+                        cleanFileName === "tailwind.config.cjs" ||
+                        cleanFileName === "tailwind.config.mjs"
+                    ) {
+                        const trimmed = contents.trim();
+                        if (!trimmed.includes("export default") && !trimmed.includes("module.exports")) {
+                            contents = "/** @type {import('tailwindcss').Config} */\nexport default {\n  content: [\n    './index.html',\n    './src/**/*.{js,ts,jsx,tsx}',\n  ],\n  theme: {\n    extend: {},\n  },\n  plugins: [],\n};\n";
+                        }
+                    }
+
+                    if (cleanFileName === "vite.config.js" || cleanFileName === "vite.config.ts") {
+                        const trimmed = contents.trim();
+                        if (!trimmed.includes("defineConfig") && !trimmed.includes("export default")) {
+                            contents = "import { defineConfig } from 'vite';\nimport react from '@vitejs/plugin-react';\n\nexport default defineConfig({\n  plugins: [react()],\n});\n";
+                        }
+                    }
                     current[part] = { file: { contents } };
                 }
             } else {
@@ -84,6 +116,29 @@ export const buildTreeFile = (files: FileDoc[]): FileSystemTree => {
             }
         }
     }
+    // Ensure essential build configs exist and are valid in root
+    const hasPostcss = Boolean(
+        tree["postcss.config.js"] || tree["postcss.config.cjs"] || tree["postcss.config.mjs"]
+    );
+    if (!hasPostcss) {
+        tree["postcss.config.js"] = {
+            file: {
+                contents: "export default {\n  plugins: {\n    tailwindcss: {},\n    autoprefixer: {},\n  },\n};\n",
+            },
+        };
+    }
+
+    const hasTailwind = Boolean(
+        tree["tailwind.config.js"] || tree["tailwind.config.cjs"] || tree["tailwind.config.mjs"]
+    );
+    if (!hasTailwind) {
+        tree["tailwind.config.js"] = {
+            file: {
+                contents: "/** @type {import('tailwindcss').Config} */\nexport default {\n  content: [\n    './index.html',\n    './src/**/*.{js,ts,jsx,tsx}',\n  ],\n  theme: {\n    extend: {},\n  },\n  plugins: [],\n};\n",
+            },
+        };
+    }
+
     return tree;
 };
 
